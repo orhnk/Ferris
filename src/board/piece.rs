@@ -1,5 +1,6 @@
 pub mod Piece {
     use std::fmt::{Display, Formatter};
+    pub struct Void; // No piece
     pub enum White {
         Pawn,
         Knight,
