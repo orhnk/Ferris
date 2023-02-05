@@ -1,3 +1,11 @@
+/* File: piece.rs
+ * Purpuse: representing every chess piece on the board with data structures
+ * Author: KoBruhh
+ * Date: 06.02.2023
+ * Note: This File did not worked very well because now board is dependant to FEN notation.
+ * I don't know if it is neccesary or not. 
+ * */
+
 pub mod Piece {
     use std::fmt::{Display, Formatter};
     pub struct Void; // No piece

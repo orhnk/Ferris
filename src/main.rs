@@ -1,3 +1,9 @@
+/* File: main.rs
+ * Purpuse: Chess Game Logic code using self library
+ * Author: KoBruhh
+ * Date: 06.02.2023
+ * */
+
 mod board;
 mod parser;
 use board::Board;
