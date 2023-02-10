@@ -6,13 +6,15 @@
 
 mod board;
 mod parser;
+
 use board::Board;
 use parser::convert_to_coords;
 use std::io::{stdin, Write};
+use board::Move;
 
 fn main() {
-        let mut board: Board = Default::default();
-        board.draw(false);
+    let mut board: Board = Default::default();
+    board.draw(false);
     loop {
         print!(">> ");
         std::io::stdout().flush().unwrap();
@@ -22,8 +24,9 @@ fn main() {
             .read_line(&mut raw_coords)
             .expect("failed to readline");
         if let Ok(coords) = convert_to_coords(&raw_coords){
-        board.move_piece(coords[0], coords[1]);
-        board.draw(false);
+            let current_move = Move::new(coords[0], coords[1]); // move is a reserved keyword
+            board.move_piece(current_move);                     // so annoying
+            board.draw(false);
         }
     }
 }
