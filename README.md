@@ -1,6 +1,11 @@
 <p align="center">
-<img resize=50 src="https://user-images.githubusercontent.com/101834410/218219462-b7aba825-5b08-42a1-ad89-8dad670789d3.png">
+<img resize=50 src="docs/img/complete_ferris_small.png" alt="ferris_logo">
 </p>
+
+<p align="center">
+<img src="docs/img/ferris_text_oringe_messy_thin_black_border_cropped.png" alt="ferris_text">
+</p>
+
 
 # Ferris
 
