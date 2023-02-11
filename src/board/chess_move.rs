@@ -15,6 +15,7 @@ use std::fmt::{Display, Formatter};
 // I am planning to add custom dialog boxes for the game using this:
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum MoveType {
     Regular,
     DoublePawn, // for the first move of a pawn
@@ -218,11 +219,13 @@ impl Move {
     }
 
 
+    #[allow(dead_code)]
     pub fn moved_piece(&self, fen: &String) -> char {
         // There is a -1 because the index starts from 0
         fen.chars().nth(fen_idx(self.0) as usize - 1).expect("OUT OF BOUNDS") 
     }
 
+    #[allow(dead_code)]
     pub fn diff_fen(&self) -> i32 {
         // Expected outputs:
         // [3, 4], [4, 4] -> 1
@@ -232,6 +235,8 @@ impl Move {
         fen_idx(self.1) - fen_idx(self.0)
     }
 
+    #[allow(dead_code)]
+    #[allow(unused_variables)]
     pub fn rate_move(&self, fen: &String) -> i32 {
         // evaulate how good was the move based on the board
         todo!();
@@ -288,6 +293,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(unused_must_use)]
     fn test_moved_piece() {
         let mut board: Board = Default::default();
         let m = Move::new([5, 7], [5, 6]);

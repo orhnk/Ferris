@@ -22,8 +22,10 @@ const PIECE_SET: piece::Theme = piece::themes::HACKER; // Or you can type (u8, u
 const BOARD_THEME: BTheme = color::themes::GRUVBOX;
 
 static mut ESCAPE: &str = "\x1b[0m";
+#[allow(non_upper_case_globals)]
 static mut last_move: ([usize; 2], [usize; 2]) = ([1, 2], [1, 2]);
 
+#[allow(non_upper_case_globals)]
 const colored: bool = true; // will map it to command line argument
 const DEFAULT_PIECE_NOTATION: &str =
     "rnbqkbnrpppppppp                                PPPPPPPPRNBQKBNR"; // I have chosen to use something called FEN to encode FEN into board. This is fixed sized.
@@ -31,6 +33,7 @@ const BOUNDS: [usize; 2] = [1, 8]; // Bounds of the board
                                    /* FEN starts from left upper corner of the board and then all the way down to right bottom.
                                     * Lover-case characters (rnbqkp) represent black while upper-cases (RNBQKB) represent white FEN*/
 
+#[allow(dead_code)] // can be used later
 fn nums_to_whitespaces(lit: &String) -> String {
     let mut s = String::with_capacity(lit.len());
     lit.chars().for_each(|ch| {
@@ -43,6 +46,7 @@ fn nums_to_whitespaces(lit: &String) -> String {
     s
 }
 
+#[allow(non_snake_case, dead_code)]
 pub struct Board {
     color: BoardColor,     // Used for storing the color of the board
     board: [[char; 8]; 8], // Used for storing the board TODO
@@ -54,6 +58,7 @@ pub struct Board {
 }
 
 impl Board {
+    #[allow(dead_code)]
     pub fn new(fen: String) -> Board {
         Board {
             color: BOARD_THEME.into(),
@@ -66,6 +71,7 @@ impl Board {
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_color(&mut self, color: BoardColor) {
         self.color = color;
     }
@@ -313,9 +319,9 @@ impl Board {
         todo!();
     }
 
-    pub fn get_coordinate(&self, x: usize, y: usize) -> White {
-        White::Pawn
-    }
+    //pub fn get_coordinate(&self, x: usize, y: usize) -> White {
+        //White::Pawn
+    //}
 }
 
 impl Default for Board {

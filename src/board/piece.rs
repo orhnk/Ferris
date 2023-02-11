@@ -9,6 +9,7 @@
 pub type Color = (u8, u8, u8);
 pub type Theme = (Color, Color);
 
+#[allow(dead_code)]
 pub mod themes {
     use super::Theme;
     // (white, black)
@@ -45,6 +46,7 @@ pub enum Piece {
     Void,
 }
 
+#[allow(dead_code)]
 impl Piece {
     pub fn is_white(&self) -> bool {
         match self {
@@ -66,6 +68,7 @@ impl Piece {
     }
 }
 
+#[allow(dead_code)]
 pub fn char_to_piece(c: char) -> Piece {
     match c {
         'P' => Piece::White(White::Pawn),

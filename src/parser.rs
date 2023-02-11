@@ -8,7 +8,7 @@
 
 use std::{error::Error, fmt::{Display}};
 
-const PARSE_ERR:&str = r#"Invalid input! Expected integers as input! (Spaces are ignored)"#;
+//const PARSE_ERR:&str = r#"Invalid input! Expected integers as input! (Spaces are ignored)"#;
 
 #[derive(Debug)]
 pub struct ParseErr;

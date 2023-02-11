@@ -9,6 +9,7 @@ pub type BColor = (u8, u8, u8);
 pub type BTheme = (BColor, BColor);
 
 // Some Color Themes for the Board
+#[allow(dead_code)]
 pub mod themes {
     use super::BTheme;
     pub const COTTON_CANDY: BTheme = ((179, 154, 154), (186, 181, 171));
@@ -16,8 +17,6 @@ pub mod themes {
     pub const GRUVBOX_DARK: BTheme = ((131, 148, 150), (40, 40, 40));
     pub const RUST: BTheme = ((219, 52, 0), (210, 191, 181));
 }
-
-use themes::*;
 
 pub struct Color(u8, u8, u8);
 pub struct BoardColor(Color, Color);
@@ -28,6 +27,7 @@ impl Color {
         Color(color.0, color.1, color.2)
     }
 
+    #[allow(dead_code)]
     pub fn rgb(&self) -> (u8, u8, u8) {
         (self.0, self.1, self.2)
     }
