@@ -1,3 +1,10 @@
+/* 
+ * File: color.rs
+ * Purpose: Contains the Color and BoardColor structs
+ * Author: KoBruhh
+ * Date: 11.02.2023
+ * */
+
 pub struct Color(u8, u8, u8);
 pub struct BoardColor(Color, Color);
 
@@ -17,6 +24,15 @@ impl Color {
     pub fn background(&self) -> String {
         format!("\x1b[48;2;{};{};{}m", self.0, self.1, self.2)
     }
+
+}
+
+impl From<(u8, u8, u8)> for Color {
+    
+    fn from(rgb: (u8, u8, u8)) -> Self {
+        Color(rgb.0, rgb.1, rgb.2)
+    }
+
 }
 
 impl BoardColor {

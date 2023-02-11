@@ -26,8 +26,16 @@ pub fn convert_to_coords(usr: &str) -> Result<[[usize;2]; 2], ParseErr> {
     if usr.len() != 4 {
         return Err(ParseErr);
     }
-    let from = [usr.chars().nth(0).unwrap().to_digit(10).expect(PARSE_ERR) as usize, usr.chars().nth(1).unwrap().to_digit(10).expect(PARSE_ERR) as usize];
-    let to = [usr.chars().nth(2).unwrap().to_digit(10).expect(PARSE_ERR) as usize, usr.chars().nth(3).unwrap().to_digit(10).expect(PARSE_ERR) as usize];
+    let mut result = [[0; 2]; 2];
+    for i in 0..2 {
+        for j in 0..2 {
+            if let Some(num) = usr.chars().nth(i*2+j).unwrap().to_digit(10) {
+                result[i][j] = num as usize;
+            } else {
+                return Err(ParseErr);
+            }
+        }
+    }
     
-    Ok([from, to])
+    Ok(result)
 }

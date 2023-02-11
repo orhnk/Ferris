@@ -4,28 +4,25 @@
  * Date: 05.02.2023
  * */
 
-mod piece;
 mod chess_move;
 mod color;
+mod piece;
 
-use crate::board::color::{
-    BoardColor,
-    Color,
-};
-use piece::Piece::*;
+use crate::board::color::{BoardColor, Color};
 pub use chess_move::Move;
+use piece::*;
 
-static mut ESCAPE:&str = "\x1b[0m";
-
+static mut ESCAPE: &str = "\x1b[0m";
+static mut last_move: ([usize; 2], [usize; 2]) = ([1, 2], [1, 2]);
 const DEFAULT_WHITE_PIECE_COLOR: (u8, u8, u8) = (20, 55, 255);
 const DEFAULT_BLACK_PIECE_COLOR: (u8, u8, u8) = (0, 0, 0);
 
-const colored:bool = true; // will map it to command line argument
+const colored: bool = true; // will map it to command line argument
 const DEFAULT_PIECE_NOTATION: &str =
-"rnbqkbnrpppppppp                                PPPPPPPPRNBQKBNR"; // I have chosen to use something called FEN to encode FEN into board. This is fixed sized.
+    "rnbqkbnrpppppppp                                PPPPPPPPRNBQKBNR"; // I have chosen to use something called FEN to encode FEN into board. This is fixed sized.
 const BOUNDS: [usize; 2] = [1, 8]; // Bounds of the board
-/* FEN starts from left upper corner of the board and then all the way down to right bottom.
- * Lover-case characters (rnbqkp) represent black while upper-cases (RNBQKB) represent white FEN*/
+                                   /* FEN starts from left upper corner of the board and then all the way down to right bottom.
+                                    * Lover-case characters (rnbqkp) represent black while upper-cases (RNBQKB) represent white FEN*/
 
 fn nums_to_whitespaces(lit: &String) -> String {
     let mut s = String::with_capacity(lit.len());
@@ -40,24 +37,26 @@ fn nums_to_whitespaces(lit: &String) -> String {
 }
 
 pub struct Board {
-    color: BoardColor,        // Used for storing the color of the board
-    board: [[char; 8]; 8],    // Used for storing the board TODO
-    FEN: String,              // Used for storing the FEN -> 72 is the max length of FEN
-    turn: bool,               // White or black turn
-    coordinates: bool,        // Used for displaying the coordinates
-    white_color: Color,       // Used for storing the color of the white pieces
-    black_color: Color,       // Used for storing the color of the black pieces
+    color: BoardColor,     // Used for storing the color of the board
+    board: [[char; 8]; 8], // Used for storing the board TODO
+    FEN: String,           // Used for storing the FEN -> 72 is the max length of FEN
+    turn: bool,            // White or black turn
+    coordinates: bool,     // Used for displaying the coordinates
+    white_color: Color,    // Used for storing the color of the white pieces
+    black_color: Color,    // Used for storing the color of the black pieces
 }
 
 impl Board {
-
-    pub fn new(color: BoardColor, coord: bool) -> Board {
+    pub fn new(fen: String) -> Board {
         Board {
-            color,
+            color: BoardColor::new(
+                DEFAULT_WHITE_PIECE_COLOR.into(),
+                DEFAULT_BLACK_PIECE_COLOR.into(),
+            ),
             board: [[' '; 8]; 8],
-            FEN: String::from(DEFAULT_PIECE_NOTATION),
+            FEN: fen,
             turn: true,
-            coordinates: coord,
+            coordinates: true,
             white_color: Color::new(255, 255, 255),
             black_color: Color::new(0, 0, 0),
         }
@@ -68,14 +67,21 @@ impl Board {
     }
 
     pub fn move_piece(&mut self, current_move: Move) {
-        current_move.validate_move();
+        //if current_move.validate_move(&self.FEN) == false {
+        //panic!("Invalid move");
+        //}
         let (from, to) = current_move.decode_move();
         if from == to {
-            panic!("You can't move a piece to the same place");
+            eprintln!("You can't move a piece to the same place");
+            ()
         }
         //if from or to includes any 0 or 9, then it's invalid
         for i in 0..BOUNDS.len() {
-            if from[i] < BOUNDS[0_usize] || from[i] > BOUNDS[1_usize] || to[i] < BOUNDS[0_usize] || to[i] > BOUNDS[1_usize] {
+            if from[i] < BOUNDS[0_usize]
+                || from[i] > BOUNDS[1_usize]
+                || to[i] < BOUNDS[0_usize]
+                || to[i] > BOUNDS[1_usize]
+            {
                 panic!("Invalid coordinates");
             }
         }
@@ -88,19 +94,34 @@ impl Board {
                 .collect::<Vec<char>>()[0]
                 != self.board[from[1] - 1_usize][from[0] - 1_usize]
                 && self.turn == false)
-                || (self.board[from[1] - 1_usize][from[0] - 1_usize]
-                    .to_lowercase()
-                    .collect::<Vec<char>>()[0]
-                    == self.board[from[1] - 1_usize][from[0] - 1_usize]
-                    && self.turn == true)
+            || (self.board[from[1] - 1_usize][from[0] - 1_usize]
+                .to_lowercase()
+                .collect::<Vec<char>>()[0]
+                == self.board[from[1] - 1_usize][from[0] - 1_usize]
+                && self.turn == true)
         {
             // If the piece is empty or if the piece is black and it's white's turn or if the piece is white and it's black's turn
             return (); // TODO! Doesn't work as it supposed to do
         }
+
+        unsafe {
+            last_move = current_move.decode_move(); // Saving the last move
+        }
+
         self.board[to[1] - 1_usize][to[0] - 1_usize] =
             self.board[from[1] - 1_usize][from[0] - 1_usize]; // Taking place of the piece
         self.turn = !self.turn; // Changing the turn
         self.board[from[1] - 1_usize][from[0] - 1_usize] = ' '; // Leaving moved piece's place empty
+    }
+
+    pub fn undo_move(&mut self) {
+        unsafe {
+            self.board[last_move.0[1] - 1_usize][last_move.0[0] - 1_usize] =
+                self.board[last_move.1[1] - 1_usize][last_move.1[0] - 1_usize];
+            self.turn = !self.turn;
+            self.board[last_move.1[1] - 1_usize][last_move.1[0] - 1_usize] = ' ';
+        }
+        self.encode();
     }
 
     pub fn draw(&mut self, gui: bool) {
@@ -111,15 +132,15 @@ impl Board {
         if gui {
             todo!();
         } else {
-            const FRAME_HOR: &str = "-";
-            const FRAME_VER: &str = "|"; // Right Top Left Bottom
+            const FRAME_HOR: &str = "";
+            const FRAME_VER: &str = ""; // Right Top Left Bottom
             const MARGIN: &str = " ";
             let size = 40;
             // Drawing board to the screen
             /* This is just experimental. I will convert this method to use OpenGL */
             let fen = &self.FEN;
-            let mut bg_color; 
-            let mut fg_color; 
+            let mut bg_color;
+            let mut fg_color;
 
             let mut row = 0;
             let mut column = 0;
@@ -147,26 +168,87 @@ impl Board {
                 column += 1; // Incrementing column
 
                 match piece {
+                    // Unsafe blocks are needed because of use of global variables
                     ' ' => unsafe { print!("{bg_color}{MARGIN}{fg_color} {MARGIN}{ESCAPE}") },
-                    'r' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = Black::Rook) }, //♜
-                    'n' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = Black::Knight) }, //♞
-                    'b' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = Black::Bishop) }, //♝
-                    'q' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = Black::Queen) }, //♛
-                    'k' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = Black::King) }, //♚
-                    'p' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = Black::Pawn) }, //♟
-                    'R' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = White::Rook) }, //♖
-                    'N' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = White::Knight) }, //♘
-                    'B' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = White::Bishop) }, //♗
-                    'Q' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = White::Queen) }, //♕
-                    'K' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = White::King) }, //♔
-                    'P' => unsafe { print!("{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}", piece = White::Pawn) }, //♙
+                    'r' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = Black::Rook
+                        )
+                    }, //♜
+                    'n' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = Black::Knight
+                        )
+                    }, //♞
+                    'b' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = Black::Bishop
+                        )
+                    }, //♝
+                    'q' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = Black::Queen
+                        )
+                    }, //♛
+                    'k' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = Black::King
+                        )
+                    }, //♚
+                    'p' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = Black::Pawn
+                        )
+                    }, //♟
+                    'R' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = White::Rook
+                        )
+                    }, //♖
+                    'N' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = White::Knight
+                        )
+                    }, //♘
+                    'B' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = White::Bishop
+                        )
+                    }, //♗
+                    'Q' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = White::Queen
+                        )
+                    }, //♕
+                    'K' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = White::King
+                        )
+                    }, //♔
+                    'P' => unsafe {
+                        print!(
+                            "{bg_color}{MARGIN}{fg_color}{piece}{MARGIN}{ESCAPE}",
+                            piece = White::Pawn
+                        )
+                    }, //♙
                     _ => panic!("Invalid FEN"),
                 }
                 print!("{FRAME_VER}");
 
                 row += 1;
                 if row % 8 == 0 {
-                    print!("\n{}\n", FRAME_HOR.repeat(size));
+                    print!("{}\n", FRAME_HOR.repeat(size));
                     row = 0;
                 }
             }
@@ -217,11 +299,14 @@ impl Board {
         score
     }
 
-    pub fn evalue(&self) -> i32 {
+    pub fn evaluate(&self) -> i32 {
         // Will evaluate the board (with a depth search)
         todo!();
     }
 
+    pub fn get_coordinate(&self, x: usize, y: usize) -> White {
+        White::Pawn
+    }
 }
 
 impl Default for Board {
@@ -232,10 +317,23 @@ impl Default for Board {
             FEN: String::from(DEFAULT_PIECE_NOTATION),
             turn: true, // white starts the game
             coordinates: true,
-            white_color: Color::new(DEFAULT_WHITE_PIECE_COLOR.0, DEFAULT_WHITE_PIECE_COLOR.1, DEFAULT_WHITE_PIECE_COLOR.2),
-            black_color: Color::new(DEFAULT_BLACK_PIECE_COLOR.0, DEFAULT_BLACK_PIECE_COLOR.1, DEFAULT_BLACK_PIECE_COLOR.2),
+            white_color: DEFAULT_WHITE_PIECE_COLOR.into(),
+            black_color: DEFAULT_BLACK_PIECE_COLOR.into(),
         };
         init.decode();
         init
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_FEN() {
+        let mut board = Board::default();
+        board.encode();
+        assert_eq!(board.FEN, DEFAULT_PIECE_NOTATION);
     }
 }
