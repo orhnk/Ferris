@@ -63,8 +63,6 @@ fn main() {
             if let Ok(_) = board.move_piece(current_move) {// so annoying
                 clear();
                 board.draw(false);
-            } else {
-                eprintln!("Invalid move");
             }
         }
     }

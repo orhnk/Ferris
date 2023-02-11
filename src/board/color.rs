@@ -5,13 +5,27 @@
  * Date: 11.02.2023
  * */
 
+pub type BColor = (u8, u8, u8);
+pub type BTheme = (BColor, BColor);
+
+// Some Color Themes for the Board
+pub mod themes {
+    use super::BTheme;
+    pub const COTTON_CANDY: BTheme = ((179, 154, 154), (186, 181, 171));
+    pub const GRUVBOX: BTheme = ((104, 157, 106), (251, 241, 199));
+    pub const GRUVBOX_DARK: BTheme = ((131, 148, 150), (40, 40, 40));
+    pub const RUST: BTheme = ((219, 52, 0), (210, 191, 181));
+}
+
+use themes::*;
+
 pub struct Color(u8, u8, u8);
 pub struct BoardColor(Color, Color);
 
 impl Color {
     
-    pub fn new(r: u8, g: u8, b: u8) -> Self {
-        Color(r, g, b)
+    pub fn new(color: (u8, u8, u8)) -> Self {
+        Color(color.0, color.1, color.2)
     }
 
     pub fn rgb(&self) -> (u8, u8, u8) {
@@ -47,10 +61,10 @@ impl BoardColor {
 
 }
 
-impl Default for BoardColor {
+impl From<BTheme> for BoardColor {
     
-    fn default() -> Self {
-        BoardColor(Color::new(176, 123, 67), Color::new(161, 78, 14))
+    fn from(theme: BTheme) -> Self {
+        BoardColor::new(Color::new(theme.0), Color::new(theme.1))
     }
 
 }

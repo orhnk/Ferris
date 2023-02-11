@@ -8,17 +8,28 @@
 
 // TODO: Undoing undone moves lead to a problem
 
-use super::Board;
-use crate::board::char_to_piece;
+//use crate::board::char_to_piece;
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 
+// I am planning to add custom dialog boxes for the game using this:
 
+#[derive(Debug, Clone)]
 pub enum MoveType {
-    Normal,
+    Regular,
+    DoublePawn, // for the first move of a pawn
+    PawnCapture, // Pawn's capture differently from other pieces
     Capture,
     EnPassant,
     Castling,
     Promotion,
 }
+
+#[derive(Clone)]
+pub struct Move([usize; 2], [usize; 2]); // start(x, y), end(x, y)
+
+#[derive(Debug, Clone)]
+pub struct MoveErr(pub String);
 
 /* An ascii Chess Board with pieces on:
  *   -----------------
@@ -82,10 +93,17 @@ const BISHOP_MOVE: [i8; 4] = [7, 9, -7, -9];
 const ROOK_MOVE: [i8; 4] = [1, 8, -1, -8];
 const QUEEN_MOVE: [i8; 8] = [1, 7, 8, 9, -1, -7, -8, -9];
 
-#[derive(Clone)]
-pub struct Move([usize; 2], [usize; 2]); // start(x, y), end(x, y)
+
+impl Display for MoveErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for MoveErr {}
 
 impl Move {
+
     pub fn new(start: [usize; 2], end: [usize; 2]) -> Self {
         Move(start, end)
     }
@@ -94,7 +112,7 @@ impl Move {
         (self.0, self.1)
     }
 
-    pub fn validate_move(&self, fen: &String, turn: bool) -> bool {
+    pub fn validate_move(&self, fen: &String, turn: bool) -> Result<MoveType, MoveErr> {
         // self.0 is the start position
         // self.1 is the end position
         /*
@@ -126,57 +144,79 @@ impl Move {
         match moved_piece.to_ascii_uppercase() {
             'P' => {
                 if PAWN_MOVE.contains(&diff) {
-                    println!("Pawn move");
-                    return true;
+                    return Ok(MoveType::Regular);
                 }
-                if NM_PAWN_MOVE.contains(&diff) {
-                    println!("Pawn move");
-                    return true;
+                else if NM_PAWN_MOVE.contains(&diff) {
+                    return Ok(MoveType::DoublePawn);
                 }
-                if PAWN_CAPTURE.contains(&diff) {
-                    println!("Pawn capture");
-                    return true;
+                else if is_full(fen, to_move_index) && PAWN_CAPTURE.contains(&diff) {
+                    return Ok(MoveType::PawnCapture);
+                } else {
+                    return Err(MoveErr("Invalid Pawn move".to_owned()));
                 }
             }
             'R' => {
                 if ROOK_MOVE.contains(&diff) {
-                    println!("Rook move");
-                    return true;
+                    if is_full(fen, to_move_index) {
+                        return Ok(MoveType::Capture);
+                    } else {
+                        return Ok(MoveType::Regular);
+                    }
+                } else {
+                    return Err(MoveErr("Invalid Rook move".to_owned()));
                 }
             }
             'N' => {
                 if KNIGHT_MOVE.contains(&diff) {
-                    println!("Knight move");
-                    return true;
+                    if is_full(fen, to_move_index) {
+                        return Ok(MoveType::Capture);
+                    } else {
+                        return Ok(MoveType::Regular);
+                    }
+                } else {
+                    return Err(MoveErr("Invalid Knight move".to_owned()));
                 }
             }
             'B' => {
                 if BISHOP_MOVE.contains(&diff) {
-                    println!("Bishop move");
-                    return true;
+                    if is_full(fen, to_move_index) {
+                        return Ok(MoveType::Capture);
+                    } else {
+                        return Ok(MoveType::Regular);
+                    }
+                } else {
+                    return Err(MoveErr("Invalid Bishop move".to_owned()));
                 }
             }
             'Q' => {
                 if QUEEN_MOVE.contains(&diff) {
-                    println!("Queen move");
-                    return true;
+                    if is_full(fen, to_move_index) {
+                        return Ok(MoveType::Capture);
+                    } else {
+                        return Ok(MoveType::Regular);
+                    }
+                } else {
+                    return Err(MoveErr("Invalid Queen move".to_owned()));
                 }
             }
             'K' => {
                 if KING_MOVE.contains(&diff) {
-                    println!("King move");
-                    return true;
+                    if is_full(fen, to_move_index) {
+                        return Ok(MoveType::Capture);
+                    } else {
+                        return Ok(MoveType::Regular);
+                    }
+                } else {
+                    return Err(MoveErr("Invalid King move".to_owned()));
                 }
             }
             _ => {
-                println!("Invalid move");
-                return false;
+                return Err(MoveErr("No valid piece found".to_owned()));
             }
         }
-        return false;;
-
         //char_to_piece(moved_piece);
     }
+
 
     pub fn moved_piece(&self, fen: &String) -> char {
         // There is a -1 because the index starts from 0
@@ -192,10 +232,6 @@ impl Move {
         fen_idx(self.1) - fen_idx(self.0)
     }
 
-    pub fn get_move_type(&self, fen: &String) -> MoveType {
-        todo!();
-    }
-
     pub fn rate_move(&self, fen: &String) -> i32 {
         // evaulate how good was the move based on the board
         todo!();
@@ -208,6 +244,10 @@ fn fen_idx(moved: [usize; 2]) -> i32 {
     (moved[0] + (moved[1] - 1) * 8) as i32 
 }
 
+fn is_full(fen:&String, to_move_index: i32) -> bool {
+        fen.chars().nth(to_move_index as usize - 1).expect("OUT OF BOUNDS:PAWN_CAPTURE") != ' ' 
+}
+
 impl From<((usize, usize), (usize, usize))> for Move {
     fn from(m: ((usize, usize), (usize, usize))) -> Self {
         Move([m.0 .0, m.0 .1], [m.1 .0, m.1 .1])
@@ -217,6 +257,7 @@ impl From<((usize, usize), (usize, usize))> for Move {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Board;
 
     #[test]
     fn test_move() {

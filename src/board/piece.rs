@@ -6,6 +6,21 @@
  * I don't know if it is neccesary or not.
  * */
 
+pub type Color = (u8, u8, u8);
+pub type Theme = (Color, Color);
+
+pub mod themes {
+    use super::Theme;
+    // (white, black)
+    pub const REGULAR: Theme = ((255, 255, 255), (0, 0, 0));
+    pub const GRUVBOX: Theme = ((0, 0, 0), (0, 0, 0));
+    pub const DRACULA: Theme = ((0, 0, 0), (0, 0, 0));
+    pub const HACKER: Theme = ((100, 255, 0), (0, 0, 0));
+    pub const NEON: Theme = ((200, 0, 255), (255, 230, 0));
+    pub const PASTEL: Theme = ((0, 0, 0), (0, 0, 0));
+    pub const SOLARIZED: Theme = ((0, 0, 0), (0, 0, 0));
+}
+
 use std::fmt::{Display, Formatter};
 pub enum White {
     Pawn,

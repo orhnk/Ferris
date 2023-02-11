@@ -8,14 +8,21 @@ mod chess_move;
 mod color;
 mod piece;
 
-use crate::board::color::{BoardColor, Color};
-pub use chess_move::Move;
+//use crate::board::color::{BoardColor, Color};
+pub use chess_move::{
+    Move,
+    MoveErr,
+    MoveType,
+};
 use piece::*;
+use color::*;
+
+
+const PIECE_SET: piece::Theme = piece::themes::HACKER; // Or you can type (u8, u8, u8), (u8, u8, u8) instead
+const BOARD_THEME: BTheme = color::themes::GRUVBOX;
 
 static mut ESCAPE: &str = "\x1b[0m";
 static mut last_move: ([usize; 2], [usize; 2]) = ([1, 2], [1, 2]);
-const DEFAULT_WHITE_PIECE_COLOR: (u8, u8, u8) = (255, 255, 255);
-const DEFAULT_BLACK_PIECE_COLOR: (u8, u8, u8) = (0, 0, 0);
 
 const colored: bool = true; // will map it to command line argument
 const DEFAULT_PIECE_NOTATION: &str =
@@ -42,23 +49,20 @@ pub struct Board {
     FEN: String,           // Used for storing the FEN -> 72 is the max length of FEN
     turn: bool,            // White or black turn
     coordinates: bool,     // Used for displaying the coordinates
-    white_color: Color,    // Used for storing the color of the white pieces
-    black_color: Color,    // Used for storing the color of the black pieces
+    white_color: piece::Color,    // Used for storing the color of the white pieces
+    black_color: piece::Color,    // Used for storing the color of the black pieces
 }
 
 impl Board {
     pub fn new(fen: String) -> Board {
         Board {
-            color: BoardColor::new(
-                DEFAULT_WHITE_PIECE_COLOR.into(),
-                DEFAULT_BLACK_PIECE_COLOR.into(),
-            ),
+            color: BOARD_THEME.into(),
             board: [[' '; 8]; 8],
             FEN: fen,
             turn: true,
             coordinates: true,
-            white_color: Color::new(255, 255, 255),
-            black_color: Color::new(0, 0, 0),
+            white_color: Default::default(),
+            black_color: Default::default(),
         }
     }
 
@@ -66,15 +70,18 @@ impl Board {
         self.color = color;
     }
 
-    pub fn move_piece(&mut self, current_move: Move) -> Result<(), ()> {
-        if !current_move.validate_move(&self.FEN, self.turn) {
-            eprintln!("Invalid move");
-            return Err(())
+    // TODO undo does not replace the taken piece
+    pub fn move_piece(&mut self, current_move: Move) -> Result<MoveType, MoveErr> {
+        let result = current_move.validate_move(&self.FEN, self.turn);
+        if let Err(MoveErr(err)) = result { // for now I am ignoring
+            return Err(MoveErr(err)); // TODO improve these to MoveErr
         }
+
+        let result = result.unwrap();
+
         let (from, to) = current_move.decode_move();
         if from == to {
-            eprintln!("You can't move a piece to the same place");
-            return Err(())
+            return Err(MoveErr("You can't move a piece to the same place".to_owned()));
         }
         //if from or to includes any 0 or 9, then it's invalid
         for i in 0..BOUNDS.len() {
@@ -83,8 +90,7 @@ impl Board {
                 || to[i] < BOUNDS[0_usize]
                 || to[i] > BOUNDS[1_usize]
             {
-                println!("Invalid coordinates");
-                return Err(())
+                return Err(MoveErr("Invalid coordinates".to_owned()));
             }
         }
         // TODO
@@ -103,7 +109,7 @@ impl Board {
                 && self.turn == true)
         {
             // If the piece is empty or if the piece is black and it's white's turn or if the piece is white and it's black's turn
-            return Err(()); // TODO! Doesn't work as it supposed to do
+            return Err(MoveErr("Wait your turn and don't touch empty squares".to_owned())); // TODO! Doesn't work as it supposed to do
         }
 
         unsafe {
@@ -114,7 +120,7 @@ impl Board {
             self.board[from[1] - 1_usize][from[0] - 1_usize]; // Taking place of the piece
         self.turn = !self.turn; // Changing the turn
         self.board[from[1] - 1_usize][from[0] - 1_usize] = ' '; // Leaving moved piece's place empty
-        Ok(())
+        return Ok(result);
     }
 
     pub fn undo_move(&mut self) {
@@ -152,9 +158,9 @@ impl Board {
                 print!("{FRAME_VER}");
                 if colored {
                     if piece.is_lowercase() {
-                        fg_color = self.black_color.foreground();
+                        fg_color = Into::<color::Color>::into(self.black_color).foreground();
                     } else {
-                        fg_color = self.white_color.foreground();
+                        fg_color = Into::<color::Color>::into(self.white_color).foreground();
                     }
                     if (row + column / 8) % 2 == 0 {
                         bg_color = self.color.rgb().0.background();
@@ -315,13 +321,13 @@ impl Board {
 impl Default for Board {
     fn default() -> Self {
         let mut init = Board {
-            color: Default::default(),
+            color: BOARD_THEME.into(),
             board: [[' '; 8]; 8],
             FEN: String::from(DEFAULT_PIECE_NOTATION),
             turn: true, // white starts the game
             coordinates: true,
-            white_color: DEFAULT_WHITE_PIECE_COLOR.into(),
-            black_color: DEFAULT_BLACK_PIECE_COLOR.into(),
+            white_color: PIECE_SET.0,
+            black_color: PIECE_SET.1,
         };
         init.decode();
         init
