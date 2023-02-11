@@ -60,9 +60,12 @@ fn main() {
 
         if let Ok(coords) = convert_to_coords(&raw_coords) {
             let current_move = Move::new(coords[0], coords[1]); // move is a reserved keyword
-            board.move_piece(current_move); // so annoying
-            clear();
-            board.draw(false);
+            if let Ok(_) = board.move_piece(current_move) {// so annoying
+                clear();
+                board.draw(false);
+            } else {
+                eprintln!("Invalid move");
+            }
         }
     }
 }

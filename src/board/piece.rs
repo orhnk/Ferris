@@ -7,7 +7,6 @@
  * */
 
 use std::fmt::{Display, Formatter};
-pub struct Void; // No piece
 pub enum White {
     Pawn,
     Knight,
@@ -24,6 +23,52 @@ pub enum Black {
     Queen,
     King,
 }
+
+pub enum Piece {
+    White(White),
+    Black(Black),
+    Void,
+}
+
+impl Piece {
+    pub fn is_white(&self) -> bool {
+        match self {
+            Piece::White(_) => true,
+            _ => false,
+        }
+    }
+    pub fn is_black(&self) -> bool {
+        match self {
+            Piece::Black(_) => true,
+            _ => false,
+        }
+    }
+    pub fn is_void(&self) -> bool {
+        match self {
+            Piece::Void => true,
+            _ => false,
+        }
+    }
+}
+
+pub fn char_to_piece(c: char) -> Piece {
+    match c {
+        'P' => Piece::White(White::Pawn),
+        'N' => Piece::White(White::Knight),
+        'B' => Piece::White(White::Bishop),
+        'R' => Piece::White(White::Rook),
+        'Q' => Piece::White(White::Queen),
+        'K' => Piece::White(White::King),
+        'p' => Piece::Black(Black::Pawn),
+        'n' => Piece::Black(Black::Knight),
+        'b' => Piece::Black(Black::Bishop),
+        'r' => Piece::Black(Black::Rook),
+        'q' => Piece::Black(Black::Queen),
+        'k' => Piece::Black(Black::King),
+        _ => Piece::Void,
+    }
+}
+
 impl Display for White {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match self {

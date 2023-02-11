@@ -6,7 +6,11 @@
  * */
 
 
+// TODO: Undoing undone moves lead to a problem
+
 use super::Board;
+use crate::board::char_to_piece;
+
 
 pub enum MoveType {
     Normal,
@@ -61,11 +65,16 @@ pub enum MoveType {
 // TODO ensure that board in bounds
 
 // THESE CHANGE DEPENDING ON THE COLOR OF THE PIECE ( WHITE(-) OR BLACK(+) )
+
 // Non-contigious moves
-const KING_MOVE: [i8; 8] = [1, 8, -1, -8, 7, 9, -7, -9];
+
+/*   Independent on color */
+const KING_MOVE: [i8; 8] = [1, 7, 8, 9, -1, -7, -8, -9];
 const KNIGHT_MOVE: [i8; 8] = [5, 11, 15, 17, -5, -11, -15, -17];
-const PAWN_MOVE: [i8; 1] = [1];
-const NM_PAWN_MOVE: [i8; 1] = [2];
+    
+/*   Dependent on color */
+const PAWN_MOVE: [i8; 1] = [8];
+const NM_PAWN_MOVE: [i8; 1] = [16];
 const PAWN_CAPTURE: [i8; 2] = [7, 9];
 
 // Contigious moves
@@ -73,6 +82,7 @@ const BISHOP_MOVE: [i8; 4] = [7, 9, -7, -9];
 const ROOK_MOVE: [i8; 4] = [1, 8, -1, -8];
 const QUEEN_MOVE: [i8; 8] = [1, 7, 8, 9, -1, -7, -8, -9];
 
+#[derive(Clone)]
 pub struct Move([usize; 2], [usize; 2]); // start(x, y), end(x, y)
 
 impl Move {
@@ -104,28 +114,98 @@ impl Move {
             false => 1,
         };
 
-        let offset = self.to_fen();
+        let from_move_index = fen_idx(self.0);
+        let to_move_index = fen_idx(self.1);
+        let moved_piece = fen.chars().nth(from_move_index as usize - 1).expect("OUT OF BOUNDS");
 
-        true // TODO
+        println!("Move index: {}", from_move_index);
+        println!("Moved piece: {}", moved_piece);
+        let diff = (to_move_index - from_move_index) as i8 * factor;
+
+        println!("diff_fen: {}", diff);
+        match moved_piece.to_ascii_uppercase() {
+            'P' => {
+                if PAWN_MOVE.contains(&diff) {
+                    println!("Pawn move");
+                    return true;
+                }
+                if NM_PAWN_MOVE.contains(&diff) {
+                    println!("Pawn move");
+                    return true;
+                }
+                if PAWN_CAPTURE.contains(&diff) {
+                    println!("Pawn capture");
+                    return true;
+                }
+            }
+            'R' => {
+                if ROOK_MOVE.contains(&diff) {
+                    println!("Rook move");
+                    return true;
+                }
+            }
+            'N' => {
+                if KNIGHT_MOVE.contains(&diff) {
+                    println!("Knight move");
+                    return true;
+                }
+            }
+            'B' => {
+                if BISHOP_MOVE.contains(&diff) {
+                    println!("Bishop move");
+                    return true;
+                }
+            }
+            'Q' => {
+                if QUEEN_MOVE.contains(&diff) {
+                    println!("Queen move");
+                    return true;
+                }
+            }
+            'K' => {
+                if KING_MOVE.contains(&diff) {
+                    println!("King move");
+                    return true;
+                }
+            }
+            _ => {
+                println!("Invalid move");
+                return false;
+            }
+        }
+        return false;;
+
+        //char_to_piece(moved_piece);
     }
 
-    pub fn to_fen(&self) -> i32 {
+    pub fn moved_piece(&self, fen: &String) -> char {
+        // There is a -1 because the index starts from 0
+        fen.chars().nth(fen_idx(self.0) as usize - 1).expect("OUT OF BOUNDS") 
+    }
+
+    pub fn diff_fen(&self) -> i32 {
         // Expected outputs:
         // [3, 4], [4, 4] -> 1
         // [3, 4], [4, 5] -> 9
         // [2, 1], [1, 3] -> -6
         // [x1, y1], [x2, y2] -> (x1 + y1 * 8) - (x2 + y2 * 8)]
-        (self.1[0] + self.1[1] * 8) as i32 - (self.0[0] + self.0[1] * 8) as i32
+        fen_idx(self.1) - fen_idx(self.0)
     }
 
-    pub fn get_move_type(&self, board: [[char; 8]; 8]) -> MoveType {
+    pub fn get_move_type(&self, fen: &String) -> MoveType {
         todo!();
     }
 
-    pub fn rate_move(&self, board: [[char; 8]; 8]) -> i32 {
+    pub fn rate_move(&self, fen: &String) -> i32 {
         // evaulate how good was the move based on the board
         todo!();
     }
+}
+
+
+fn fen_idx(moved: [usize; 2]) -> i32 {
+    // [x, y] -> (x + (y - 1) * 8)
+    (moved[0] + (moved[1] - 1) * 8) as i32 
 }
 
 impl From<((usize, usize), (usize, usize))> for Move {
@@ -141,20 +221,69 @@ mod tests {
     #[test]
     fn test_move() {
         let m = Move::new([3, 4], [4, 4]);
-        assert_eq!(m.to_fen(), 1);
+        assert_eq!(m.diff_fen(), 1);
         let m = Move::new([3, 4], [4, 5]);
-        assert_eq!(m.to_fen(), 9);
+        assert_eq!(m.diff_fen(), 9);
         let m = Move::new([2, 1], [1, 3]);
-        assert_eq!(m.to_fen(), 15);
+        assert_eq!(m.diff_fen(), 15);
     }
 
     #[test]
     fn test_into() {
         let m: Move = ((3, 4), (4, 4)).into();
-        assert_eq!(m.to_fen(), 1);
+        assert_eq!(m.diff_fen(), 1);
         let m: Move = ((3, 4), (4, 5)).into();
-        assert_eq!(m.to_fen(), 9);
+        assert_eq!(m.diff_fen(), 9);
         let m: Move = ((2, 1), (1, 3)).into();
-        assert_eq!(m.to_fen(), 15);
+        assert_eq!(m.diff_fen(), 15);
     }
+
+    #[test]
+    fn test_fen_idx() {
+        assert_eq!(fen_idx([3, 4]), 27);
+        assert_eq!(fen_idx([4, 4]), 28);
+        assert_eq!(fen_idx([2, 1]),  2);
+        assert_eq!(fen_idx([1, 3]), 17);
+    }
+
+    #[test]
+    fn test_moved_piece() {
+        let mut board: Board = Default::default();
+        let m = Move::new([5, 7], [5, 6]);
+        board.move_piece(m.clone()); // This is testing purpuses only.
+                                    // After piece moves, we don't 
+                                    // want to keep the old position
+        assert_eq!(m.moved_piece(&board.FEN), 'P');
+        board.draw(false);
+
+        let m = Move::new([5, 2], [5, 4]);
+        board.move_piece(m.clone());
+        assert_eq!(m.moved_piece(&board.FEN), 'p');
+        board.draw(false);
+
+        let m = Move::new([2, 8], [3, 6]);
+        board.move_piece(m.clone());
+        assert_eq!(m.moved_piece(&board.FEN), 'N'); // has to be 57 but it is 58
+        board.draw(false);
+
+        let m = Move::new([2, 1], [3, 3]);
+        board.move_piece(m.clone());
+        assert_eq!(m.moved_piece(&board.FEN), 'n');
+        board.draw(false);
+
+        let m = Move::new([6, 8], [3, 5]);
+        board.move_piece(m.clone());
+        assert_eq!(m.moved_piece(&board.FEN), 'B');
+        board.draw(false);
+
+        let m = Move::new([6, 1], [2, 5]);
+        board.move_piece(m.clone());
+        assert_eq!(m.moved_piece(&board.FEN), 'b');
+        board.draw(false);
+
+        /* uncomment this to see the steps of validation: 
+         * `cargo test` to see validation steps after uncommented*/
+         //assert!(false == true); // This returns false so test will output stdout
+    }
+
 }

@@ -50,7 +50,7 @@ impl BoardColor {
 impl Default for BoardColor {
     
     fn default() -> Self {
-        BoardColor(Color::new(168, 243, 218), Color::new(147, 122, 183))
+        BoardColor(Color::new(176, 123, 67), Color::new(161, 78, 14))
     }
 
 }

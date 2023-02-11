@@ -14,7 +14,7 @@ use piece::*;
 
 static mut ESCAPE: &str = "\x1b[0m";
 static mut last_move: ([usize; 2], [usize; 2]) = ([1, 2], [1, 2]);
-const DEFAULT_WHITE_PIECE_COLOR: (u8, u8, u8) = (20, 55, 255);
+const DEFAULT_WHITE_PIECE_COLOR: (u8, u8, u8) = (255, 255, 255);
 const DEFAULT_BLACK_PIECE_COLOR: (u8, u8, u8) = (0, 0, 0);
 
 const colored: bool = true; // will map it to command line argument
@@ -66,14 +66,15 @@ impl Board {
         self.color = color;
     }
 
-    pub fn move_piece(&mut self, current_move: Move) {
-        //if current_move.validate_move(&self.FEN) == false {
-        //panic!("Invalid move");
-        //}
+    pub fn move_piece(&mut self, current_move: Move) -> Result<(), ()> {
+        if !current_move.validate_move(&self.FEN, self.turn) {
+            eprintln!("Invalid move");
+            return Err(())
+        }
         let (from, to) = current_move.decode_move();
         if from == to {
             eprintln!("You can't move a piece to the same place");
-            ()
+            return Err(())
         }
         //if from or to includes any 0 or 9, then it's invalid
         for i in 0..BOUNDS.len() {
@@ -82,7 +83,8 @@ impl Board {
                 || to[i] < BOUNDS[0_usize]
                 || to[i] > BOUNDS[1_usize]
             {
-                panic!("Invalid coordinates");
+                println!("Invalid coordinates");
+                return Err(())
             }
         }
         // TODO
@@ -101,7 +103,7 @@ impl Board {
                 && self.turn == true)
         {
             // If the piece is empty or if the piece is black and it's white's turn or if the piece is white and it's black's turn
-            return (); // TODO! Doesn't work as it supposed to do
+            return Err(()); // TODO! Doesn't work as it supposed to do
         }
 
         unsafe {
@@ -112,6 +114,7 @@ impl Board {
             self.board[from[1] - 1_usize][from[0] - 1_usize]; // Taking place of the piece
         self.turn = !self.turn; // Changing the turn
         self.board[from[1] - 1_usize][from[0] - 1_usize] = ' '; // Leaving moved piece's place empty
+        Ok(())
     }
 
     pub fn undo_move(&mut self) {
@@ -149,9 +152,9 @@ impl Board {
                 print!("{FRAME_VER}");
                 if colored {
                     if piece.is_lowercase() {
-                        fg_color = self.white_color.foreground();
-                    } else {
                         fg_color = self.black_color.foreground();
+                    } else {
+                        fg_color = self.white_color.foreground();
                     }
                     if (row + column / 8) % 2 == 0 {
                         bg_color = self.color.rgb().0.background();
