@@ -1,0 +1,135 @@
+[random]
+quotes = [
+	"DO YOUR MOVE OR ...",
+	"NOT EVEN CLOSE TO FUNNY",
+	"SHUT UP AND PLAY!",
+	"WHAT ARE YOU DOING?",
+	"play it. NOW!",
+]
+
+[capture] # when opponent captures
+pawn = [
+	"HA HA A PAWN? THAT'S WHAT YOU'D TAKE",
+	"WHAT A WASTE OF TIME",
+	"SUCH A DUMMY",
+	"SO? THAT MADE YOU A HERO",
+	"YOU ARE JUST A REGULAR GUY WHO IS NOTHIN BUT FREAK",
+]
+
+knight = [
+	"WHAT YOU GONNA DO WITH IT?",
+	"LOOK OUT!",
+	"MURDER!",
+	"YOU SEEM LIKE A HORSE TO ME",
+	"SHEESH",
+]
+
+bishop = [
+	"LOL BRO THATS FUNNY",
+	"SUCH A DUMB MOVE",
+	"BAD. FOR YOU",
+	"HA HA HA",
+	"YOU are FUNny",
+]
+
+rook = [
+	"JUST A ROOK",
+	"I WONT LET YOU GO!",
+	"ANYONE WOULD DO THAT",
+	"SUCH A LOSER",
+	"I SAW THIS MOVE. WHEN I WAS 7",
+]
+
+queen = [
+	"I DID NOT LIKE THAT",
+	"WHAT ARE YOU DOING?",
+	"SIMPLE.",
+	"PAYBACK!",
+	"SINCE THEN. I DONT LIKE MY QUEEN",
+]
+
+[take]
+pawn = [
+	"POOR PAWN",
+	"LOOK THERE ARE BIRDS IN THE SKY!",
+	"YOU AND THAT GUY WAS THE SAME",
+	"I SMELL IT, VICTORY!",
+	"TAKE THIS AS A DISCLAMER",
+]
+
+knight = [
+	"GG",
+	"SORRY",
+	"RIP. not for knight tho",
+	"I CAN DO THAT",
+	"ONE MORE GUY TO GO CEMETERY",
+]
+
+bishop = [
+	"THAT'S WHAT YOU PLANNED?",
+	"YOU MUST BE SAD",
+	"WHAT YOU GONNA DO?",
+	":|",
+	">:(",
+]
+
+rook = [
+	"I AM A CONQUERER NOW",
+	"DON'T CRY",
+	"IF CHESS WAS IN REAL LIFE. I WOULD BE 300Lb+",
+	"GONE!",
+	"LOOK AT THE BOARD. IT'S CHANGED",
+]
+
+queen = [
+	"NOM NOM NOM",
+	"HAM HAM",
+	"I TOUGHT I WAS FULL. BUT NO",
+	"YOU ARE SINGLE NOW",
+	"THAT WAS TASTY",
+]
+
+rare = [
+	"FASTER!",
+	"WATCH OUT",
+	"THINK! WHY"
+]
+
+
+
+[check] # opponent
+
+quotes = [
+	"THAT'S WHAT NORMAL GUYS DO",
+	"HA HA GOOD JOKE",
+	"I'D THINK YOU WOULD DO BETTER",
+	"A CHECK!",
+	"SIMPLE",
+]
+
+[checked] # Ferris
+quotes = [
+	"CHECK!",
+	"NOW GET OUT OF THERE!",
+	"POOR KING",
+]
+
+[checkmate] # opponent
+
+quotes = [
+	"BUT W-WAIT. WHAT?",
+	"HOW DARE YOU!",
+	"I UNDERESTIMATED YOU",
+	"YOU. OK",
+	"AGAIN?",
+]
+
+[checkmated]
+quotes = [
+	"HAHA LOOSER",
+	"NOOB",
+	"YOU WAS TOO EASY. THAT IS NOT A WIN",
+	"SMILE!",
+	"DONE? TOO FAST",
+]
+

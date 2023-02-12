@@ -18,8 +18,8 @@ use piece::*;
 use color::*;
 
 
-const PIECE_SET: piece::Theme = piece::themes::HACKER; // Or you can type (u8, u8, u8), (u8, u8, u8) instead
-const BOARD_THEME: BTheme = color::themes::GRUVBOX;
+const PIECE_SET: piece::Theme = piece::themes::GRUVBOX; // Or you can type (u8, u8, u8), (u8, u8, u8) instead
+const BOARD_THEME: BTheme = color::themes::BLANK;
 
 static mut ESCAPE: &str = "\x1b[0m";
 #[allow(non_upper_case_globals)]

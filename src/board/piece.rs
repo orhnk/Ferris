@@ -14,12 +14,13 @@ pub mod themes {
     use super::Theme;
     // (white, black)
     pub const REGULAR: Theme = ((255, 255, 255), (0, 0, 0));
-    pub const GRUVBOX: Theme = ((0, 0, 0), (0, 0, 0));
-    pub const DRACULA: Theme = ((0, 0, 0), (0, 0, 0));
+    pub const GRUVBOX: Theme = ((168, 153, 132), (80, 73, 69));
+    pub const DARCULA: Theme = ((238, 238, 238), (174, 138, 190));
     pub const HACKER: Theme = ((100, 255, 0), (0, 0, 0));
     pub const NEON: Theme = ((200, 0, 255), (255, 230, 0));
-    pub const PASTEL: Theme = ((0, 0, 0), (0, 0, 0));
-    pub const SOLARIZED: Theme = ((0, 0, 0), (0, 0, 0));
+    pub const PASTEL: Theme = ((210, 145, 188), (149, 125, 173));
+    pub const SOLARIZED: Theme = ((203, 75, 22), (211, 54, 130));
+    pub const CHALLENGER: Theme = ((0, 0, 0), (0, 0, 0));
 }
 
 use std::fmt::{Display, Formatter};

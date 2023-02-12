@@ -23,3 +23,4 @@ Ferris is not only an AI. it is a TUI/GUI chess application! (and a library to b
   
 </p>
 
+**Still in Development!**

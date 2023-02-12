@@ -1,0 +1,125 @@
+[random]
+quotes = [
+	"FASTER! FASTER!",
+	"YOU'RE TOO SLOW!",
+	"HEY YOU LITTLE GRUMPY HUMANOID, FASTER",
+	"I AM LATE AGAIN!",
+	"I WISH WE HAD A CLOCK",
+]
+
+[capture] # when opponent captures
+pawn = [
+	"OH! MY PAWN",
+	"NOOO! MY PAWN",
+	"SHEESH!",
+	"...",
+	"WHY?",
+]
+
+knight = [
+	"MY KNIGHT, DAMN",
+	"Horsey, it is dead now",
+	"I liked that horse",
+	"Good horse. It was",
+	"Why would you do that?",
+]
+
+bishop = [
+	"There it goes",
+	"Board is cleaner",
+	"That piece was pretty",
+	"Feeling bored",
+	"You don't know how to handle pieces",
+]
+
+rook = [
+	"Mobility. For what cost?",
+	"Rook was good",
+	"At least I saw it",
+	"I'm not sure if I liked that rook",
+	"It is gone now",
+]
+
+queen = [
+	"My QUEEN!",
+	"I like to listen it. But that doesn't means I like it",
+	"Nevermind",
+	"Finally you made your move",
+	"Queen? Rly?",
+]
+
+[take]
+pawn = [
+	"Your pawn is mine now",
+	"Graveryard is full? please one more",
+	"Death? That's how close we are",
+	"I ate your pawn",
+	"Let's take then",
+]
+
+knight = [
+	"Knight seems to be tasty",
+	"that Knight. I took that",
+	"In theory that could be a donkey",
+	"Even I hate Knights I'll take",
+	"Ugh Knight?",
+]
+
+bishop = [
+	"Bishop. GONE!",
+	"I like this board. Not it is color but now it is cleaner",
+	"Neat move. Isn't it?",
+	"At least that was not a bishop",
+	"Let's take",
+]
+
+rook = [
+	"Rook. Did you like it?",
+	"Sorry But now it is mine",
+	"Rook. I like it",
+	"Bruh. That one?",
+	"Took it",
+]
+
+queen = [
+	"Queen. I have to take bro",
+	"Sheesh. That was a queen",
+	"She was cheap",
+	"She was cheating on you lol",
+	"That is funny yeah",
+]
+
+rare = [
+	"I feel like I'm playing with a child",
+	"Are you even trying?",
+	"Haha. You're so bad",
+]
+
+
+
+[check] # opponent
+
+quotes = [
+	"",
+	"",
+	"",
+	"",
+	"",
+]
+
+[checked] # Ferris
+quotes = [
+	"",
+	"",
+	"",
+]
+
+[checkmate]
+
+quotes = [
+	"",
+	"",
+	"",
+	"",
+	"",
+]

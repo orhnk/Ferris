@@ -1,0 +1,125 @@
+[random]
+quotes = [
+	"HAV",
+	"BRRRRR",
+	"HAV",
+	"HEV HAV",
+	"HAV",
+]
+
+[capture] # when opponent captures
+pawn = [
+	"GRRR",
+	"HRRRR",
+	"HAV",
+	"HAV",
+	"HAV",
+]
+
+knight = [
+	"HAV",
+	"GRRRRRR",
+	"HAV",
+	"HAVRRR",
+	"HAV",
+]
+
+bishop = [
+	"HAVSS",
+	"HAV",
+	"HAV",
+	"HUFFFF",
+	"HAV",
+]
+
+rook = [
+	"HRRRR",
+	"HAV",
+	"BRRRRRRR",
+	"HAV",
+	"HAV",
+]
+
+queen = [
+	"HAV",
+	"GRRRRR",
+	"HAV",
+	"HUFFF",
+	"HAV",
+]
+
+[take]
+pawn = [
+	"HAHAV",
+	"HAV",
+	"HAVRR",
+	"HAV",
+	"HAV HUFFF",
+]
+
+knight = [
+	"BRRR",
+	"GRRR BRRR",
+	"HAV",
+	"HUF",
+	"HAV",
+]
+
+bishop = [
+	"HAV HEV HAV",
+	"BRR BRRR",
+	"HEV",
+	"HAV",
+	"HAV",
+]
+
+rook = [
+	"HUFFF",
+	"HEV",
+	"HAV",
+	"HAV",
+	"GRRRRRRR",
+]
+
+queen = [
+	"HEHAV HAV HAV HEV",
+	"BRR BRR HAV HEV",
+	"HEV BR GRR",
+	"GRR GRR",
+	"GRRRR",
+]
+
+rare = [
+	"HAVEBRR BRR HAV HEVE",
+	"BRRRE HUFFAHEV",
+	"GRR GRR CRRR"
+]
+
+
+
+[check] # opponent checked 
+
+quotes = [
+	"HHHAVVV",
+	"GRRR",
+	"CRRRR",
+	"GGGRR",
+	"HEV",
+]
+
+[checked] # Ferris checked
+quotes = [
+	"HEVAHAV",
+	"HAVGRR",
+	"HAVBRRR",
+]
+
+[checkmate]
+
+quotes = [
+	"GGRR",
+	"GRRRAHAV",
+	"RUFFF",
+	"HUFFF",
+	"HRRR",
+]

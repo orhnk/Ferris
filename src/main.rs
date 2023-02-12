@@ -60,9 +60,13 @@ fn main() {
 
         if let Ok(coords) = convert_to_coords(&raw_coords) {
             let current_move = Move::new(coords[0], coords[1]); // move is a reserved keyword
-            if let Ok(_) = board.move_piece(current_move) {// so annoying
+            let moved = board.move_piece(current_move);
+            if let Ok(_) = moved {// so annoying
                 clear();
                 board.draw(false);
+            }
+            if let Err(e) = moved {
+                println!("{}", e);
             }
         }
     }

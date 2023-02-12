@@ -16,6 +16,7 @@ pub mod themes {
     pub const GRUVBOX: BTheme = ((104, 157, 106), (251, 241, 199));
     pub const GRUVBOX_DARK: BTheme = ((131, 148, 150), (40, 40, 40));
     pub const RUST: BTheme = ((219, 52, 0), (210, 191, 181));
+    pub const BLANK: BTheme = ((0, 0, 0), (0, 0, 0));
 }
 
 pub struct Color(u8, u8, u8);
