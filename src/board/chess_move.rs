@@ -8,6 +8,14 @@
 // TURN SYSTEM HAS BUGS!
 
 // TODO: Undoing undone moves lead to a problem
+// TODO: Castling
+// TODO: En passant
+// TODO: Promotion
+// TODO: Check and Checkmate
+// TODO: Stalemate
+// TODO: Resign
+// TODO: Draw
+// TODO: Moves doesn't affect the board if not drawed (BUG)
 
 //use crate::board::char_to_piece;
 use std::error::Error;
@@ -15,7 +23,7 @@ use std::fmt::{Display, Formatter};
 
 // I am planning to add custom dialog boxes for the game using this:
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 #[allow(dead_code)]
 pub enum MoveType {
     Regular,
@@ -24,7 +32,7 @@ pub enum MoveType {
     Capture,
 
     EnPassant, // TODO
-    Castling,  // TODO
+    Castle,    // TODO
     Promotion, // TODO
 }
 
@@ -101,6 +109,8 @@ const KNIGHT_MOVE: [i8; 8] = [5, 11, 15, 17, -5, -11, -15, -17];
 const PAWN_MOVE: [i8; 1] = [8];
 const NM_PAWN_MOVE: [i8; 1] = [16];
 const PAWN_CAPTURE: [i8; 2] = [7, 9];
+const CASTLING_KING: [i8; 2] = [2, -2];
+const CASTLING_ROOK: [i8; 2] = [3, -4];
 
 // Contigious moves
 const BISHOP_MOVE: [i8; 4] = [7, 9, -7, -9];
@@ -249,7 +259,7 @@ impl Move {
                 }
             }
             'K' => {
-                if KING_MOVE.contains(&diff) {
+                if KING_MOVE.contains(&diff) && is_empty(fen, to_move_index) {
                     if is_full(fen, to_move_index) {
                         return Ok(MoveType::Capture);
                     } else {
@@ -286,7 +296,8 @@ impl Move {
 
     #[allow(dead_code)]
     #[allow(unused_variables)]
-    pub fn rate_move_slight(&self) -> i32 { // simple evaluation
+    pub fn rate_move_slight(&self) -> i32 {
+        // simple evaluation
         // evaulate how good was the move based on the board
         unsafe {
             match TAKEN_PIECE {
@@ -313,21 +324,23 @@ impl Move {
 
         todo!()
     }
-
 }
 
 fn contigious_move_check(legal_moves: Vec<i8>, diff: i8, fen: &String) -> bool {
-    let mut result = diff;
-    for x in legal_moves {
-        for _ in 0..8 {
-            result -= x; // TODO attempt to subtract with overflow
-            if fen.chars().nth(result as usize - 1).unwrap_or(' ') != ' ' {
-                return false;
+    let mut result = dbg!(diff);
+    let mut has_piece_between = false;
+    for x in dbg!(legal_moves) {
+        for _ in 0..7 {
+            // try to fix bug below by limiting the number of iterations (8 -> 7)
+            result -= dbg!(x); // TODO attempt to subtract with overflow >> 61 24
+            if has_piece_between && fen.chars().nth(dbg!(result) as usize).unwrap_or(' ') != ' ' {
+                has_piece_between = true;
             }
-            if result == 0 {
+            if result == 0 && !has_piece_between {
                 return true;
             }
         }
+        result = diff;
     }
     false
 }
@@ -364,12 +377,7 @@ fn is_empty_till_n(fen: &String, to_move_index: i32, way: Offset, n: i8, turn: b
         }
     }
     for _ in 0..n {
-        if fen
-            .chars()
-            .nth(index as usize)
-            .expect("OUT OF BOUNDS")
-            != ' '
-        {
+        if fen.chars().nth(index as usize).expect("OUT OF BOUNDS") != ' ' {
             return false;
         }
         index += inc; // not checking current index (piece to be moved)
@@ -400,7 +408,7 @@ mod tests {
     use crate::Board;
 
     #[test]
-    fn test_move() {
+    fn test_diff_fen() {
         let m = Move::new([3, 4], [4, 4]);
         assert_eq!(m.diff_fen(), 1);
         let m = Move::new([3, 4], [4, 5]);
@@ -429,7 +437,8 @@ mod tests {
 
     #[test]
     #[allow(unused_must_use)]
-    fn test_moved_piece() {
+    fn test_general_game() {
+        // TODO ADD SOME MOVES
         let mut board: Board = Default::default();
         let m = Move::new([5, 7], [5, 6]);
         board.move_piece(m.clone()).unwrap(); // This is testing purpuses only.
@@ -488,4 +497,142 @@ mod tests {
          * `cargo test` to see validation steps after uncommented*/
         //assert!(false == true); // This returns false so test will output stdout
     }
+
+    #[test]
+    fn test_pwan_move() {
+        let mut board: Board = Default::default();
+        let m = Move::new([5, 7], [5, 6]);
+        let move_type = board.move_piece(m.clone()).unwrap();
+        assert_eq!(move_type, MoveType::Regular);
+        assert_eq!(m.moved_piece(&board.FEN), 'P');
+    }
+
+    #[test]
+    fn test_pawn_capture() {
+        let mut board: Board = Default::default();
+        let m = Move::new([5, 7], [5, 5]);
+        board.move_piece(m.clone()).unwrap();
+        assert_eq!(m.moved_piece(&board.FEN), 'P');
+        board.draw(false);
+
+        let m = Move::new([4, 2], [4, 4]);
+        board.move_piece(m.clone()).unwrap();
+        assert_eq!(m.moved_piece(&board.FEN), 'p');
+        board.draw(false);
+
+        let m = Move::new([5, 5], [4, 4]); // Capture
+        let move_type = board.move_piece(m.clone()).unwrap();
+        assert_eq!(move_type, MoveType::PawnCapture);
+    }
+
+    //#[test]
+    //fn test_pawn_double_move() { todo!() }
+
+    //#[test]
+    //fn test_pawn_blocked() { todo!() }
+
+    //#[test]
+    //fn test_pawn_promotion() { todo!() }
+
+    #[test]
+    fn test_knight_move() { 
+        let mut board: Board = Default::default();
+        let m = Move::new([2, 8], [3, 6]);
+        let move_type = board.move_piece(m.clone()).unwrap();
+        assert_eq!(move_type, MoveType::Regular);
+        assert_eq!(m.moved_piece(&board.FEN), 'N');
+        board.draw(false);
+    }
+
+    #[test]
+    fn test_knight_capture() { 
+        let mut board: Board = Default::default();
+        let m = Move::new([7, 8], [6, 6]);
+        board.move_piece(m.clone()).unwrap();
+        assert_eq!(m.moved_piece(&board.FEN), 'N');
+        board.draw(false);
+
+        let m = Move::new([5, 2], [5, 4]); // Pawn moves to knight
+        board.move_piece(m.clone()).unwrap();
+        board.draw(false);
+
+        let m = Move::new([6, 6], [5, 4]); // Capture
+        let move_type = board.move_piece(m.clone()).unwrap();
+        assert_eq!(m.moved_piece(&board.FEN), 'N');
+        assert_eq!(move_type, MoveType::Capture);
+    }
+
+    #[test]
+    fn test_bishop_blocked() { 
+        let mut board: Board = Default::default();
+        let m = Move::new([3, 8], [6, 5]);
+        let move_type = board.move_piece(m.clone());
+        assert!(move_type.is_err());
+        assert_ne!(m.moved_piece(&board.FEN), 'B');
+        board.draw(false);
+    }
+
+    //#[test]
+    //fn test_bishop_capture() { todo!() }
+
+    //#[test]
+    //fn test_rook_move() { todo!() } 
+
+    //#[test]
+    //fn test_rook_capture() { todo!() }
+
+    //#[test]
+    //fn test_queen_move() { todo!() }
+
+    //#[test]
+    //fn test_queen_capture() { todo!() }
+
+    //#[test]
+    //fn test_king_move() { todo!() }
+
+    //#[test]
+    //fn test_king_capture() { todo!() }
+
+    //#[test]
+    //fn test_king_castle() { todo!() }
+
+    //#[test]
+    //fn test_queen_castle() { todo!() }
+
+    //#[test]
+    //fn test_en_passant() { todo!() }
+
+    //#[test]
+    //fn test_promotion() { todo!() }
+
+    //#[test]
+    //fn test_check() { todo!() }
+    
+    //#[test]
+    //fn test_checkmate() { todo!() }
+
+    //#[test]
+    //fn test_stalemate() { todo!() }
+
+    //#[test]
+    //fn test_invalid_move() { todo!() }
+
+    //#[test]
+    //fn test_insufficient_material() { todo!() }
+
+    //#[test]
+    //fn test_fifty_move_rule() { todo!() } // ???
+
+    //#[test]
+    //fn test_threefold_repetition() { todo!() }
+
+    //#[test]
+    //fn test_draw() { todo!() }
+
+    //#[test]
+    //fn test_draw_by_agreement() { todo!() }
+
+    //#[test]
+    //fn test_win_by_resignation() { todo!() }
+
 }
