@@ -18,8 +18,8 @@ use piece::*;
 use color::*;
 
 
-const PIECE_SET: piece::Theme = piece::themes::GRUVBOX; // Or you can type (u8, u8, u8), (u8, u8, u8) instead
-const BOARD_THEME: BTheme = color::themes::BLANK;
+const PIECE_SET: piece::Theme = piece::themes::CHALLENGER; // Or you can type (u8, u8, u8), (u8, u8, u8) instead
+const BOARD_THEME: BTheme = color::themes::RUST;
 
 static mut ESCAPE: &str = "\x1b[0m";
 #[allow(non_upper_case_globals)]
@@ -47,6 +47,7 @@ fn nums_to_whitespaces(lit: &String) -> String {
 }
 
 #[allow(non_snake_case, dead_code)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Board {
     color: BoardColor,     // Used for storing the color of the board
     board: [[char; 8]; 8], // Used for storing the board TODO
@@ -59,7 +60,7 @@ pub struct Board {
 
 impl Board {
     #[allow(dead_code)]
-    pub fn new(fen: String) -> Board {
+    pub fn new(fen: String) -> Board { // Empty board
         Board {
             color: BOARD_THEME.into(),
             board: [[' '; 8]; 8],
@@ -69,6 +70,35 @@ impl Board {
             white_color: Default::default(),
             black_color: Default::default(),
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn from_fen(fen: String) -> Board {
+        let mut tmp = Board {
+            color: BOARD_THEME.into(),
+            board: [[' '; 8]; 8],
+            FEN: fen,
+            turn: true,
+            coordinates: true,
+            white_color: Default::default(),
+            black_color: Default::default(),
+        };
+        tmp.decode();
+        tmp
+    }
+    #[allow(dead_code)]
+    pub fn from_vec(board: [[char; 8]; 8]) -> Board {
+        let mut tmp = Board {
+            color: BOARD_THEME.into(),
+            board,
+            FEN: String::new(),
+            turn: true,
+            coordinates: true,
+            white_color: Default::default(),
+            black_color: Default::default(),
+        };
+        tmp.encode();
+        tmp
     }
 
     #[allow(dead_code)]
@@ -350,5 +380,23 @@ mod tests {
         let mut board = Board::default();
         board.encode();
         assert_eq!(board.FEN, DEFAULT_PIECE_NOTATION);
+    }
+    
+    #[test]
+    fn test_board_from_fen() {
+        let mut board = Board::default();
+        board.encode();
+        let mut board2 = Board::from_fen(board.FEN.clone());
+        board2.encode();
+        assert_eq!(board, board2);
+    }
+
+    #[test]
+    fn test_board_from_vec() {
+        let mut board = Board::default();
+        board.encode();
+        let mut board2 = Board::from_vec(board.board.clone());
+        board2.encode();
+        assert_eq!(board, board2);
     }
 }

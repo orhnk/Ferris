@@ -19,7 +19,9 @@ pub mod themes {
     pub const BLANK: BTheme = ((0, 0, 0), (0, 0, 0));
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color(u8, u8, u8);
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BoardColor(Color, Color);
 
 impl Color {
