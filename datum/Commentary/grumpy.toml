@@ -1,98 +1,98 @@
 [random]
 quotes = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"MEH",
+	"HMMMM",
+	"You. You are in the age of my son",
+	"My back hurts",
+	"I used to play this game while ago",
 ]
 
 [capture] # when opponent captures
 pawn = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"HM. I see",
+	"Ok",
+	"So",
+	"Not a big deal",
+	"Whatever",
 ]
 
 knight = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"I understand",
+	"You, try to play better",
+	"Not that good",
+	"Simple",
+	"Nevermind",
 ]
 
 bishop = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"You can take it",
+	"Go ahead",
+	"Only bishop?",
+	"That one?",
+	"Really?",
 ]
 
 rook = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"I dont care",
+	"You young person! think more!",
+	"I dont know bout yall but I think I am winning",
+	"Same old story",
+	"I am not impressed",
 ]
 
 queen = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Cmon Guys! SILENCE!",
+	"Star of the show",
+	"Queen? She was already dead",
+	"I saw worse in the army",
+	"That's exactly what I wanted you to play",
 ]
 
 [take]
 pawn = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Cmon Play",
+	"Don't cry it is just a pawn",
+	"I take it",
+	"Let's go",
+	"Path to Glory?",
 ]
 
 knight = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Took your knight",
+	"Let's take the knight",
+	"Night for Knight",
+	"I'm full of surprises",
+	"Winning?",
 ]
 
 bishop = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Bishops. I hope you are not scared",
+	"You are not that good",
+	"See?",
+	"Easy",
+	"What a lucky shot",
 ]
 
 rook = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Rook. I think you are losing",
+	"Boring",
+	"Too easy"
+	"You have no idea",
+	"Wild!",
 ]
 
 queen = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"It's just a game",
+	"You should now how to lose too",
+	"You can't always win",
+	"Sorry",
+	"I am winning?",
 ]
 
 rare = [
-	"",
-	"",
-	""
+	"Ahh. My young ages",
+	"I was a good player",
+	"So many memories",
 ]
 
 
@@ -100,26 +100,36 @@ rare = [
 [check] # opponent
 
 quotes = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Check Huh?",
+	"Ok.",
+	"I see",
+	"Be aware!",
+	"Wrong plan!",
 ]
 
 [checked] # Ferris
 quotes = [
-	"",
-	"",
-	"",
+	"Check",
+	"Checked.",
+	"See That?",
 ]
 
-[checkmate]
+[checkmate] # opponent
 
 quotes = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"WAOW. I am impressed",
+	"Nice",
+	"Good Game",
+	"Good Job",
+	"Play Again?",
+]
+
+[checkmated] # Ferris
+
+quotes = [
+	"Checkmate! HAHA",
+	"Checkmate!",
+	"Didn't see that coming. huh?",
+	"Sorry I had to do that",
+	"I am so bad. CHECKMATE!",
 ]

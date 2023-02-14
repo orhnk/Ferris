@@ -49,13 +49,13 @@ fn nums_to_whitespaces(lit: &String) -> String {
 #[allow(non_snake_case, dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Board {
-    color: BoardColor,     // Used for storing the color of the board
-    board: [[char; 8]; 8], // Used for storing the board TODO
-    FEN: String,           // Used for storing the FEN -> 72 is the max length of FEN
-    turn: bool,            // White or black turn
-    coordinates: bool,     // Used for displaying the coordinates
-    white_color: piece::Color,    // Used for storing the color of the white pieces
-    black_color: piece::Color,    // Used for storing the color of the black pieces
+    pub color: BoardColor,     // Used for storing the color of the board
+    pub board: [[char; 8]; 8], // Used for storing the board TODO
+    pub FEN: String,           // Used for storing the FEN -> 72 is the max length of FEN
+    pub turn: bool,            // White or black turn
+    pub coordinates: bool,     // Used for displaying the coordinates
+    pub white_color: piece::Color,    // Used for storing the color of the white pieces
+    pub black_color: piece::Color,    // Used for storing the color of the black pieces
 }
 
 impl Board {
@@ -102,8 +102,35 @@ impl Board {
     }
 
     #[allow(dead_code)]
+    pub fn remove(&mut self, pos: [usize; 2]) {
+        self.board[pos[0] - 1][pos[1] - 1] = ' ';
+        self.encode();
+    }
+
+    #[allow(dead_code)]
+    pub fn put(&mut self, pos: [usize; 2], piece: char) {
+        self.board[pos[0] - 1][pos[1] - 1] = piece;
+        self.encode();
+    }
+
+    #[allow(dead_code)]
     pub fn set_color(&mut self, color: BoardColor) {
         self.color = color;
+    }
+
+    #[allow(dead_code)]
+    pub fn reverse_turn(&mut self) {
+        self.turn = !self.turn;
+    }
+
+    #[allow(dead_code)]
+    pub fn move_unchecked(&mut self, current_move: &Move) { // This is just for castling so We
+                                                            // don't have to clear the square
+        //self.decode();
+        let (from, to) = current_move.decode_move();
+        self.board[to[0] - 1][to[1] - 1] = self.board[from[0] - 1][from[1] - 1];
+        self.board[from[0] - 1][from[1] - 1] = ' ';
+        self.encode();
     }
 
     // TODO undo does not replace the taken piece
@@ -145,8 +172,46 @@ impl Board {
                 && self.turn == true)
         {
             // If the piece is empty or if the piece is black and it's white's turn or if the piece is white and it's black's turn
-            return Err(MoveErr("Wait your turn and don't touch empty squares".to_owned())); // TODO! Doesn't work as it supposed to do
+            return Err(MoveErr("Wait for your turn".to_owned())); // TODO! Doesn't work as it supposed to do
         }
+        
+        if result == MoveType::Castle {
+            /* Make sure that squares are empty! */
+            self.move_unchecked(&current_move);
+            // This will move rook
+            //self.reverse_turn();
+            /* Go to the corner which King has been moved */
+            match self.turn {
+                true => {
+                    if dbg!(current_move.decode_move().1[0]) == 7 { // if we are trying to castle to the right
+                        self.move_unchecked(&Move::new(
+                            [8, 8], // Freaking wrong coordinates has to be (x, y) it is (y, x)
+                            [8, 6],
+                        ));
+                    } else if dbg!(current_move.decode_move().1[0]) == 3 {
+                        self.move_unchecked(&Move::new(
+                            [8, 1],
+                            [8, 4],
+                        ));
+                    }
+                },
+
+                false => {
+                    if dbg!(current_move.decode_move().1[0]) == 7 { // if we are trying to castle to the right
+                        self.move_unchecked(&Move::new(
+                            [1, 8],
+                            [1, 6],
+                        ));
+                    } else if dbg!(current_move.decode_move().1[0]) == 3 {
+                        self.move_unchecked(&Move::new(
+                            [1, 1],
+                            [1, 4],
+                        ));
+                    }
+                },
+            }
+        }
+
 
         unsafe {
             last_move = current_move.decode_move(); // Saving the last move

@@ -105,7 +105,6 @@ enum Offset {
 /*   Independent on color */
 /*  */
 
-
 // OLD
 // Non-contigious moves
 /*   Independent on color */
@@ -182,7 +181,7 @@ impl Move {
         let to_move_index = fen_idx(self.1);
         let taken_piece = fen
             .chars()
-            .nth(to_move_index as usize)
+            .nth(to_move_index as usize - 1)
             .expect("OUT OF BOUNDS");
 
         unsafe {
@@ -266,7 +265,28 @@ impl Move {
                 }
             }
             'K' => {
-                if KING_MOVE.contains(&diff) && is_empty(fen, to_move_index) {
+                if dbg!(CASTLING_KING.contains(&diff)) {
+                    // Will couse error. (left is empty it can castle right)
+                    if (is_empty(fen, to_move_index)
+                        && is_empty(fen, to_move_index + 1 * factor as i32))
+                        || (is_empty(fen, -to_move_index)
+                            && is_empty(fen, -to_move_index + 1 * factor as i32))
+                    {
+                        // TODO Add here
+                        return Ok(MoveType::Castle);
+                    } else {
+                        return Err(MoveErr("Invalid King move".to_owned()));
+                    }
+                }
+                if KING_MOVE.contains(&diff)
+                    && (is_empty(fen, to_move_index)
+                        || dbg!(is_white(
+                            dbg!(fen
+                                .chars()
+                                .nth(to_move_index as usize - 1)
+                                .expect("OUT OF BOUNDS: King Move Check")), // make is in the opposite color from the moving piece
+                        )) == dbg!(factor.is_positive())) // seems to work but not sure. TODO != (maybe?)
+                {
                     if is_full(fen, to_move_index) {
                         return Ok(MoveType::Capture);
                     } else {
@@ -332,66 +352,88 @@ impl Move {
         todo!()
     }
 }
+/*
+fn contigious_move_check(
+    legal_moves: Vec<i8>,
+    start: i8,
+    diff: i8,
+    fen: &String,
+    factor: i8,
+) -> bool {
+    let piece_is_white = {
+        let piece = fen
+            .chars()
+            .nth(start as usize)
+            .expect("OUT OF BOUNDS: contigious_move_check");
+        is_white(piece)
+    };
 
-
-
-fn contigious_move_check(legal_moves: Vec<i8>, start:i8, diff: i8, fen: &String, factor: i8) -> bool {
     let mut result = dbg!(start);
     let to = dbg!(start + diff * factor);
-    let mut has_piece_between = false;
+    //let mut has_piece_between = false;
     for x in dbg!(legal_moves) {
         result += dbg!(x * factor); // TODO attempt to subtract with overflow >> 61 24
         for _ in 0..7 {
             // try to fix bug below by limiting the number of iterations (8 -> 7)
             dbg!(result);
             //if result < start && result > to && factor == -1{
-                //return true;
-            //} 
+            //return true;
+            //}
             //if result > start && result < to && factor == 1 {
-                //break;
+            //break;
             //}
             let index = result - 1;
 
             if index < 0 || index > 63 {
                 break;
             } else {
-            if dbg!(fen.chars().nth(dbg!(result - 1) as usize).unwrap_or(' '))!= ' ' {
-                break; // > ADDED < 
-                //has_piece_between = true;
-            }
-            }
-            if dbg!(result) == to && !has_piece_between {
+                let piece = dbg!(fen
+                    .chars()
+                    .nth(index as usize)
+                    .expect("OUT OF BOUNDS: contigious_move_check"));
+                if dbg!(dbg!(piece_is_white) == dbg!(is_white(piece))) { // if there is a piece in
+                                                                       // the way which is in the same
+                                                                       // color
+                    break; // > ADDED <
+                           //has_piece_between = true;
+                }
+            if dbg!(result) == to { // changed -> && !has_piece_between
                 return true;
             }
             result += dbg!(x * factor); // TODO attempt to subtract with overflow >> 61 24
+            }
         }
-        has_piece_between = false;
+        //has_piece_between = false;
         result = start;
     }
     false
 }
-
+*/
+// TODO
+pub fn is_white(piece: char) -> bool {
+    piece.is_uppercase()
+}
 
 // TODO make this more efficient
 //fn contigious_move_check(legal_moves: Vec<i8>, start:i8, diff: i8, fen: &String, factor: i8) -> bool {
-    //let mut result = dbg!(diff);
-    //let mut has_piece_between = false;
-    //for x in dbg!(legal_moves) {
-        //for _ in 0..7 {
-             //try to fix bug below by limiting the number of iterations (8 -> 7)
-            //dbg!(result);
-            //if !dbg!(has_piece_between) && dbg!(fen.chars().nth(dbg!(start * factor + result + 1) as usize).unwrap_or(' '))!= ' ' {
-                //has_piece_between = true;
-            //}
-            //if dbg!(result) == 0 && !has_piece_between {
-                //return true;
-            //}
-            //result += dbg!(x * factor); // TODO attempt to subtract with overflow >> 61 24
-        //}
-        //has_piece_between = false;
-        //result = diff;
-    //}
-    //false
+//let mut result = dbg!(diff);
+//let mut has_piece_between = false;
+//for x in dbg!(legal_moves) {
+//for _ in 0..7 {
+//try to fix bug below by limiting the number of iterations (8 -> 7)
+//dbg!(result);
+//if !dbg!(has_piece_between) && dbg!(fen.chars().nth(dbg!(start * factor + result + 1) as usize).unwrap_or(' '))!= ' ' {
+//has_piece_between = true;
+//}
+//if dbg!(result) == 0 && !has_piece_between {
+//return true;
+//}
+//result += dbg!(x * factor); // TODO attempt to subtract with overflow >> 61 24
+//}
+//has_piece_between = false;
+//result = diff;
+//}
+//false
 //}
 
 /* // Tried This:
@@ -428,10 +470,56 @@ fn fen_idx(moved: [usize; 2]) -> i32 {
     (moved[0] + (moved[1] - 1) * 8) as i32
 }
 
+fn contigious_move_check(
+    legal_moves: Vec<i8>,
+    start: i8,
+    diff: i8,
+    fen: &String,
+    factor: i8,
+) -> bool {
+    let mut result = dbg!(start);
+    let to = dbg!(start + diff * factor);
+    let mut has_piece_between = false;
+    for x in dbg!(legal_moves) {
+        result += dbg!(x * factor); // TODO attempt to subtract with overflow >> 61 24
+        for _ in 0..7 {
+            // try to fix bug below by limiting the number of iterations (8 -> 7)
+            dbg!(result);
+            //if result < start && result > to && factor == -1{
+            //return true;
+            //}
+            //if result > start && result < to && factor == 1 {
+            //break;
+            //}
+            let index = result - 1;
+
+            if index < 0 || index > 63 {
+                break;
+            } else {
+                let piece = dbg!(fen
+                    .chars()
+                    .nth(result as usize - 1)
+                    .expect("OUT OF BOUNDS: contigious_move_check"));
+                if piece != ' ' && factor.is_negative() == is_white(piece) {
+                    break; // > ADDED <
+                           //has_piece_between = true;
+                }
+            }
+            if dbg!(result) == to && !has_piece_between {
+                return true;
+            }
+            result += dbg!(x * factor); // TODO attempt to subtract with overflow >> 61 24
+        }
+        has_piece_between = false;
+        result = start;
+    }
+    false
+}
+
 // TODO
 fn is_empty_till_n(fen: &String, to_move_index: i32, way: Offset, n: i8, turn: bool) -> bool {
     // Piece could be white or black
-
+    // And piece can eat opponent's piece
     /* This algorithm first looks at the target
      * squareand loops till the piece which is
      * going tomove, if there is a non-empty
@@ -451,7 +539,8 @@ fn is_empty_till_n(fen: &String, to_move_index: i32, way: Offset, n: i8, turn: b
         }
     }
     for _ in 0..n {
-        if fen.chars().nth(index as usize).expect("OUT OF BOUNDS") != ' ' {
+        // TODO out of bounds
+        if fen.chars().nth(index as usize).unwrap_or('_') != ' ' {
             return false;
         }
         index += inc; // not checking current index (piece to be moved)
@@ -466,7 +555,8 @@ fn is_empty(fen: &String, to_move_index: i32) -> bool {
 fn is_full(fen: &String, to_move_index: i32) -> bool {
     fen.chars()
         .nth(to_move_index as usize - 1)
-        .expect("OUT OF BOUNDS:PAWN_CAPTURE")
+        .unwrap_or(' ')
+        //.expect("OUT OF BOUNDS:PAWN_CAPTURE")
         != ' '
 }
 
@@ -573,7 +663,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pwan_move() {
+    fn test_pawn_move() {
         let mut board: Board = Default::default();
         let m = Move::new([5, 7], [5, 6]);
         let move_type = board.move_piece(m.clone()).unwrap();
@@ -609,7 +699,7 @@ mod tests {
     //fn test_pawn_promotion() { todo!() }
 
     #[test]
-    fn test_knight_move() { 
+    fn test_knight_move() {
         let mut board: Board = Default::default();
         let m = Move::new([2, 8], [3, 6]);
         let move_type = board.move_piece(m.clone()).unwrap();
@@ -619,7 +709,7 @@ mod tests {
     }
 
     #[test]
-    fn test_knight_capture() { 
+    fn test_knight_capture() {
         let mut board: Board = Default::default();
         let m = Move::new([7, 8], [6, 6]);
         board.move_piece(m.clone()).unwrap();
@@ -637,13 +727,13 @@ mod tests {
     }
 
     #[test]
-    fn test_bishop_blocked() { 
+    fn test_bishop_blocked() {
         let mut board: Board = Default::default();
         let m_white_bishop = Move::new([3, 8], [6, 5]);
         let move_type = board.move_piece(m_white_bishop.clone());
         assert!(move_type.is_err());
         board.draw(false); // TODO drawing first breakes to test
-        //assert_ne!(m.moved_piece(&board.FEN), 'B'); // TODO fix this
+                           //assert_ne!(m.moved_piece(&board.FEN), 'B'); // TODO fix this
 
         let m_black_bishop = Move::new([3, 1], [6, 4]);
         let move_type = board.move_piece(m_black_bishop.clone());
@@ -652,68 +742,155 @@ mod tests {
     }
 
     #[test]
-    fn test_bishop_capture() { 
-        //let mut board:Board = Board::from(value)
+    fn test_bishop_capture() {
+        // This has to return an error because the bishop tries to eat a piece which is same color as itself
+        let mut board: Board = Board::from_fen(
+            "                      b                           p             ".to_owned(),
+        );
+        board.draw(false);
+        let m_err = Move::new([7, 3], [3, 7]);
+        let move_type_err = board.move_piece(m_err.clone());
+        assert!(move_type_err.is_err());
+
+        let mut board: Board = Board::from_fen(
+            "                      B                           p             ".to_owned(),
+        );
+        let m_ok = Move::new([7, 3], [3, 7]);
+        let move_type_ok = board.move_piece(m_ok.clone());
+        assert!(move_type_ok.is_ok());
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'B');
+        assert_eq!(move_type_ok.unwrap(), MoveType::Capture);
+        board.draw(false);
     }
 
     #[test]
-    fn test_rook_move() {  } 
+    fn test_rook_capture() {
+        /* Forgot to reverse_turn! always white starts. shoot! */
+        let mut board = Board::from_fen(
+            "r      p                                                        ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_err = Move::new([1, 1], [8, 1]);
+        let move_type_err = board.move_piece(m_err.clone());
+        assert!(move_type_err.is_err());
+        board.draw(false);
+
+        let mut board = Board::from_fen(
+            "r      P                                                        ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_ok = Move::new([1, 1], [8, 1]);
+        let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'r');
+        assert_eq!(move_type_ok, MoveType::Capture);
+        board.draw(false);
+    }
 
     #[test]
-    fn test_rook_capture() {  }
+    fn test_rook_move() {
+        let mut board = Board::from_fen(
+            "r                                                               ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_ok = Move::new([1, 1], [8, 1]);
+        let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'r');
+        assert_eq!(move_type_ok, MoveType::Regular);
+        board.draw(false);
+    }
+
+    // TODO add more comprehensive tests. (diagnal, horizontal, vertical)
+    #[test]
+    fn test_queen_move() {
+        let mut board = Board::from_fen(
+            "q                                                               ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_ok = Move::new([1, 1], [8, 1]);
+        let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'q');
+        assert_eq!(move_type_ok, MoveType::Regular);
+        board.draw(false);
+    }
 
     #[test]
-    fn test_queen_move() {  }
+    fn test_queen_capture() {
+        let mut board = Board::from_fen(
+            "q      P                                                        ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_ok = Move::new([1, 1], [8, 1]);
+        let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'q');
+        assert_eq!(move_type_ok, MoveType::Capture);
+        board.draw(false);
+    }
 
     #[test]
-    fn test_queen_capture() {  }
+    fn test_king_move() {
+        let mut board = Board::from_fen(
+            "k                                                               ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_ok = Move::new([1, 1], [2, 1]);
+        let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'k');
+        assert_eq!(move_type_ok, MoveType::Regular);
+        board.draw(false);
+    }
 
     #[test]
-    fn test_king_move() {  }
+    fn test_king_capture() {
+        let mut board = Board::from_fen(
+            "kP                                                               ".to_owned(),
+        );
+        board.reverse_turn();
+        let m_ok = Move::new([1, 1], [2, 1]);
+        let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
+        assert_eq!(m_ok.moved_piece(&board.FEN), 'k');
+        assert_eq!(move_type_ok, MoveType::Capture);
+        board.draw(false);
+    }
 
     #[test]
-    fn test_king_capture() {  }
+    fn test_king_castle() {}
 
     #[test]
-    fn test_king_castle() {  }
+    fn test_queen_castle() {}
 
     #[test]
-    fn test_queen_castle() {  }
+    fn test_en_passant() {}
 
     #[test]
-    fn test_en_passant() {  }
+    fn test_promotion() {}
 
     #[test]
-    fn test_promotion() {  }
+    fn test_check() {}
 
     #[test]
-    fn test_check() {  }
-    
-    #[test]
-    fn test_checkmate() {  }
+    fn test_checkmate() {}
 
     #[test]
-    fn test_stalemate() {  }
+    fn test_stalemate() {}
 
     #[test]
-    fn test_invalid_move() {  }
+    fn test_invalid_move() {}
 
     #[test]
-    fn test_insufficient_material() {  }
+    fn test_insufficient_material() {}
 
     #[test]
-    fn test_fifty_move_rule() {  }
+    fn test_fifty_move_rule() {}
 
     #[test]
-    fn test_threefold_repetition() {  }
+    fn test_threefold_repetition() {}
 
     #[test]
-    fn test_draw() {  }
+    fn test_draw() {}
 
     #[test]
-    fn test_draw_by_agreement() {  }
+    fn test_draw_by_agreement() {}
 
     #[test]
-    fn test_win_by_resignation() {  }
-
+    fn test_win_by_resignation() {}
 }

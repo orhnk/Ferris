@@ -1,98 +1,98 @@
 [random]
 quotes = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"FUCK!",
+	"SHIT!",
+	"NO.",
+	"Should I?",
+	"It's getting complicated",
 ]
 
 [capture] # when opponent captures
 pawn = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Fucking pawn",
+	"So not end of the life",
+	"Why?",
+	"Hmmm",
+	"Lol",
 ]
 
 knight = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Freaking Knight!",
+	"Did I see that? maybe.",
+	"Calm down.",
+	"That horsey. He was nice",
+	"I don't like this game",
 ]
 
 bishop = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"WTF?",
+	"I know your plan",
+	"Simple.",
+	"trying?",
+	"I don't think so",
 ]
 
 rook = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Shoot!",
+	"Damn My rook",
+	"Fuck it",
+	"Ssshhh",
+	"I took that personal!",
 ]
 
 queen = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Queen. Fuck...",
+	"Ok.",
+	"What the fuck?",
+	"Shit",
+	"I knew that.",
 ]
 
 [take]
 pawn = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Eyyo took that.",
+	"Let's go",
+	"Yeah yeah",
+	"Look dumbass",
+	"Calm down",
 ]
 
 knight = [
-	"",
-	"",
-	"",
-	"",
+	"Sike! Took that knight",
+	"You! poor slave",
+	"What's comming next",
+	"Guess what? A rich menu",
 	"",
 ]
 
 bishop = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"I like your cut G",
+	"Smack!",
+	"Bang!",
+	"Sike!",
+	"Check! this out",
 ]
 
 rook = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Badabim badaboom",
+	"Rook babe",
+	"I ate that shit",
+	"Took it bro",
+	"Eyo took it",
 ]
 
 queen = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"DAMNNN. Took you'r queen",
+	"I hope you like it",
+	"Close to win?",
+	"I'd like some glory",
+	"Bang!!!",
 ]
 
 rare = [
-	"",
-	"",
-	""
+	"Heey! Shut yo ass up!",
+	"HEhehe",
+	"BRUHH"
 ]
 
 
@@ -100,26 +100,36 @@ rare = [
 [check] # opponent
 
 quotes = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"Fuck?",
+	"Don't",
+	"how dare you!",
+	"you little shit!",
+	"You wanted I'll deliver",
 ]
 
 [checked] # Ferris
 quotes = [
-	"",
-	"",
-	"",
+	"CHECK!",
+	"You'r king I am looking at him now!",
+	"King? LOL",
 ]
 
-[checkmate]
+[checkmate] # opponent
 
 quotes = [
-	"",
-	"",
-	"",
-	"",
-	"",
+	"FUCK!!!",
+	"SHITTED TO MY PANTS!",
+	"LOL",
+	"GG my friend",
+	"Heck",
+]
+
+[checkmated] # Ferris
+
+quotes = [
+	"Who's loughing now?",
+	"BADASS MOVE!",
+	"I'm savage",
+	"HAHA",
+	"BET!!",
 ]
