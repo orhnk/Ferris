@@ -17,14 +17,24 @@ use std::{
     process::exit,
 };
 
+/*
+ * Buggy FENS:
+ *  "r bq rk ppppnppp  n     bB  p       P     PP N  PP   PPPRNBQ RK "
+ *
+ * */
+
+static mut MOVE_TYPE: String = String::new();
+
 fn main() {
     let mut board: Board = Board::from_fen(
-        "r   k  r                                                R   K  R".to_owned(),
+       "r bq rk ppppnppp  n     bB  p       P     PP N  PP   PPPRNBQ RK ".to_owned()
     );
-    board.draw(false);
-
 
     loop {
+        board.draw_ascii();
+        unsafe {
+            println!("Move type: {}", MOVE_TYPE);
+        }
         print!(">> ");
         std::io::stdout().flush().unwrap();
         let mut raw_coords = String::new();
@@ -38,7 +48,6 @@ fn main() {
             "exit" => exit(0),
             "undo" => {
                 board.undo_move();
-                board.draw(false);
                 continue;
             }
             "seval" => {
@@ -51,12 +60,11 @@ fn main() {
             }
             "reset" => {
                 board = Default::default();
-                board.draw(false);
+                clear();
                 continue;
             }
             "clear" => {
                 clear();
-                board.draw(false);
                 continue;
             }
             "turn" => {
@@ -72,14 +80,17 @@ fn main() {
 
         if let Ok(coords) = convert_to_coords(&raw_coords) {
             let current_move = Move::new(coords[0], coords[1]); // move is a reserved keyword
-            let moved = board.move_piece(current_move);
-            if let Ok(_) = moved {
-                // so annoying
-                clear();
-                board.draw(false);
-            }
-            if let Err(e) = moved {
-                println!("{}", e);
+            let move_t = board.move_piece(current_move);
+            match move_t {
+                Ok(move_t) => {
+                    unsafe {
+                        MOVE_TYPE = move_t.to_string();
+                    }
+                    clear();
+                }
+                Err(e) => {
+                    println!("{}", e);
+                }
             }
         }
     }

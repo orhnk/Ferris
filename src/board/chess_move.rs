@@ -54,6 +54,9 @@ enum Offset {
     DownRight,
 }
 
+static mut MOVED_PAWN_WHITE: [bool; 8] = [false; 8];
+static mut MOVED_PAWN_BLACK: [bool; 8] = [false; 8];
+
 /* An ascii Chess Board with pieces on:
  *   -----------------
  * 8| r n b q k b n r |
@@ -109,14 +112,16 @@ enum Offset {
 // Non-contigious moves
 /*   Independent on color */
 const KING_MOVE: [i8; 8] = [1, 7, 8, 9, -1, -7, -8, -9];
-const KNIGHT_MOVE: [i8; 8] = [5, 11, 15, 17, -5, -11, -15, -17];
+const KNIGHT_MOVE: [i8; 8] = [
+    /* 5, */ 6, /*11,*/ 15, 17, 10, /* -5,  -11,*/ -6, -15, -17, -10,
+];
 
 /*   Dependent on color */
 const PAWN_MOVE: [i8; 1] = [8];
 const NM_PAWN_MOVE: [i8; 1] = [16];
 const PAWN_CAPTURE: [i8; 2] = [7, 9];
 const CASTLING_KING: [i8; 2] = [2, -2];
-const CASTLING_ROOK: [i8; 2] = [3, -4];
+//const CASTLING_ROOK: [i8; 2] = [3, -4];
 
 // Contigious moves
 const BISHOP_MOVE: [i8; 4] = [7, 9, -7, -9];
@@ -132,6 +137,20 @@ impl Display for MoveErr {
 }
 
 impl Error for MoveErr {}
+
+impl Display for MoveType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MoveType::Regular => write!(f, "Regular"),
+            MoveType::DoublePawn => write!(f, "DoublePawn"),
+            MoveType::PawnCapture => write!(f, "PawnCapture"),
+            MoveType::Capture => write!(f, "Capture"),
+            MoveType::EnPassant => write!(f, "EnPassant"),
+            MoveType::Castle => write!(f, "Castle"),
+            MoveType::Promotion => write!(f, "Promotion"),
+        }
+    }
+}
 
 impl Offset {
     pub fn to_i32(&self) -> i32 {
@@ -265,12 +284,22 @@ impl Move {
                 }
             }
             'K' => {
+                // TODO Check if king is in check
+                // TODO Check if king or rook has moved
+                // TODO Check if the rook is near the king -> (????K  R)
+                //                                                 ^^^^
+                // TODO Fix the pawn disambiguation ->
+                // When it's white's turn, in short castle left side white pawn disappears
+
                 if dbg!(CASTLING_KING.contains(&diff)) {
                     // Will couse error. (left is empty it can castle right)
+                    // TODO Move these is_empty to a move method
+
                     if (is_empty(fen, to_move_index)
-                        && is_empty(fen, to_move_index + 1 * factor as i32))
-                        || (is_empty(fen, -to_move_index)
-                            && is_empty(fen, -to_move_index + 1 * factor as i32))
+                        && is_empty(fen, to_move_index + 1 * factor as i32)) // short castling:
+                        || (is_empty(fen, to_move_index)
+                            && is_empty(fen, to_move_index + 1 * -factor as i32))
+                    // long castling:
                     {
                         // TODO Add here
                         return Ok(MoveType::Castle);
@@ -280,12 +309,14 @@ impl Move {
                 }
                 if KING_MOVE.contains(&diff)
                     && (is_empty(fen, to_move_index)
-                        || dbg!(is_white(
+                        || dbg!(is_opposite_color(
                             dbg!(fen
                                 .chars()
                                 .nth(to_move_index as usize - 1)
-                                .expect("OUT OF BOUNDS: King Move Check")), // make is in the opposite color from the moving piece
-                        )) == dbg!(factor.is_positive())) // seems to work but not sure. TODO != (maybe?)
+                                .expect("OUT OF BOUNDS: King Move Check")),
+                            factor
+                        )))
+                // seems to work but not sure. TODO != (maybe?)
                 {
                     if is_full(fen, to_move_index) {
                         return Ok(MoveType::Capture);
@@ -300,7 +331,11 @@ impl Move {
                 return Err(MoveErr("No valid piece found".to_owned()));
             }
         }
-        //char_to_piece(moved_piece);
+    }
+
+    #[allow(dead_code)]
+    pub fn draw_gui(&self) {
+        todo!()
     }
 
     #[allow(dead_code)]
@@ -351,7 +386,35 @@ impl Move {
 
         todo!()
     }
+
+    pub fn fen_idx_from(&self) -> i32 {
+        fen_idx(self.0)
+    }
+
+    pub fn fen_idx_to(&self) -> i32 {
+        fen_idx(self.1)
+    }
+
 }
+
+fn is_opposite_color(piece: char, factor: i8) -> bool {
+    /*
+     * Returns true if the piece is in the opposite color from the moving piece
+     * If we have a positive factor, we are moving white pieces
+     * so we can only capture black pieces
+     * or vice versa
+     * */
+    return match factor {
+        -1 => is_black(piece),
+        1 => is_white(piece),
+        _ => panic!("Invalid factor"),
+    };
+}
+
+fn is_black(piece: char) -> bool {
+    piece.is_ascii_lowercase()
+}
+
 /*
 fn contigious_move_check(
     legal_moves: Vec<i8>,
@@ -465,7 +528,7 @@ fn non_contigious_move_check(legal_moves: Vec<i8>, diff: i8) -> bool {
     legal_moves.iter().any(|&x| x == diff)
 }
 
-fn fen_idx(moved: [usize; 2]) -> i32 {
+pub fn fen_idx(moved: [usize; 2]) -> i32 {
     // [x, y] -> (x + (y - 1) * 8)
     (moved[0] + (moved[1] - 1) * 8) as i32
 }
@@ -531,11 +594,11 @@ fn is_empty_till_n(fen: &String, to_move_index: i32, way: Offset, n: i8, turn: b
     match turn {
         true => {
             index += 1;
-            inc *= 1
+            inc *= 1;
         }
         false => {
             index -= 1;
-            inc *= -1
+            inc *= -1;
         }
     }
     for _ in 0..n {
@@ -609,37 +672,37 @@ mod tests {
                                               // After piece moves, we don't
                                               // want to keep the old position
         assert_eq!(m.moved_piece(&board.FEN), 'P');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([5, 2], [5, 4]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'p');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([2, 8], [3, 6]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'N'); // has to be 57 but it is 58
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([2, 1], [3, 3]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'n');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([6, 8], [3, 5]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'B');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([6, 1], [2, 5]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'b');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([5, 6], [5, 5]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'P');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([5, 4], [5, 5]); // Errorenous move
         assert!(board.move_piece(m.clone()).is_err());
@@ -677,12 +740,12 @@ mod tests {
         let m = Move::new([5, 7], [5, 5]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'P');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([4, 2], [4, 4]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'p');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([5, 5], [4, 4]); // Capture
         let move_type = board.move_piece(m.clone()).unwrap();
@@ -705,7 +768,7 @@ mod tests {
         let move_type = board.move_piece(m.clone()).unwrap();
         assert_eq!(move_type, MoveType::Regular);
         assert_eq!(m.moved_piece(&board.FEN), 'N');
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -714,11 +777,11 @@ mod tests {
         let m = Move::new([7, 8], [6, 6]);
         board.move_piece(m.clone()).unwrap();
         assert_eq!(m.moved_piece(&board.FEN), 'N');
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([5, 2], [5, 4]); // Pawn moves to knight
         board.move_piece(m.clone()).unwrap();
-        board.draw(false);
+        board.draw_ascii();
 
         let m = Move::new([6, 6], [5, 4]); // Capture
         let move_type = board.move_piece(m.clone()).unwrap();
@@ -732,13 +795,13 @@ mod tests {
         let m_white_bishop = Move::new([3, 8], [6, 5]);
         let move_type = board.move_piece(m_white_bishop.clone());
         assert!(move_type.is_err());
-        board.draw(false); // TODO drawing first breakes to test
-                           //assert_ne!(m.moved_piece(&board.FEN), 'B'); // TODO fix this
+        board.draw_ascii(); // TODO drawing first breakes to test
+                            //assert_ne!(m.moved_piece(&board.FEN), 'B'); // TODO fix this
 
         let m_black_bishop = Move::new([3, 1], [6, 4]);
         let move_type = board.move_piece(m_black_bishop.clone());
         assert!(move_type.is_err());
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -747,7 +810,7 @@ mod tests {
         let mut board: Board = Board::from_fen(
             "                      b                           p             ".to_owned(),
         );
-        board.draw(false);
+        board.draw_ascii();
         let m_err = Move::new([7, 3], [3, 7]);
         let move_type_err = board.move_piece(m_err.clone());
         assert!(move_type_err.is_err());
@@ -760,7 +823,7 @@ mod tests {
         assert!(move_type_ok.is_ok());
         assert_eq!(m_ok.moved_piece(&board.FEN), 'B');
         assert_eq!(move_type_ok.unwrap(), MoveType::Capture);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -773,7 +836,7 @@ mod tests {
         let m_err = Move::new([1, 1], [8, 1]);
         let move_type_err = board.move_piece(m_err.clone());
         assert!(move_type_err.is_err());
-        board.draw(false);
+        board.draw_ascii();
 
         let mut board = Board::from_fen(
             "r      P                                                        ".to_owned(),
@@ -783,7 +846,7 @@ mod tests {
         let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
         assert_eq!(m_ok.moved_piece(&board.FEN), 'r');
         assert_eq!(move_type_ok, MoveType::Capture);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -796,7 +859,7 @@ mod tests {
         let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
         assert_eq!(m_ok.moved_piece(&board.FEN), 'r');
         assert_eq!(move_type_ok, MoveType::Regular);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     // TODO add more comprehensive tests. (diagnal, horizontal, vertical)
@@ -810,7 +873,7 @@ mod tests {
         let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
         assert_eq!(m_ok.moved_piece(&board.FEN), 'q');
         assert_eq!(move_type_ok, MoveType::Regular);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -823,7 +886,7 @@ mod tests {
         let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
         assert_eq!(m_ok.moved_piece(&board.FEN), 'q');
         assert_eq!(move_type_ok, MoveType::Capture);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -836,7 +899,7 @@ mod tests {
         let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
         assert_eq!(m_ok.moved_piece(&board.FEN), 'k');
         assert_eq!(move_type_ok, MoveType::Regular);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
@@ -849,7 +912,7 @@ mod tests {
         let move_type_ok = board.move_piece(m_ok.clone()).unwrap();
         assert_eq!(m_ok.moved_piece(&board.FEN), 'k');
         assert_eq!(move_type_ok, MoveType::Capture);
-        board.draw(false);
+        board.draw_ascii();
     }
 
     #[test]
