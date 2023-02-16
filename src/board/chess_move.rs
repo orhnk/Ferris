@@ -27,13 +27,13 @@ use std::fmt::{Display, Formatter};
 #[allow(dead_code)]
 pub enum MoveType {
     Regular,
-    DoublePawn,  // for the first move of a pawn
-    PawnCapture, // Pawn's capture differently from other pieces
+    DoublePawn,
+    PawnCapture,
     Capture,
+    Castle, // Kinda done, but so many bugs, row validation, moved piece validation etc.
+    Promotion,
 
     EnPassant, // TODO
-    Castle,    // TODO
-    Promotion, // TODO
 }
 
 #[derive(Clone)]
@@ -53,9 +53,6 @@ enum Offset {
     DownLeft,
     DownRight,
 }
-
-static mut MOVED_PAWN_WHITE: [bool; 8] = [false; 8];
-static mut MOVED_PAWN_BLACK: [bool; 8] = [false; 8];
 
 /* An ascii Chess Board with pieces on:
  *   -----------------
@@ -224,13 +221,28 @@ impl Move {
                 if non_contigious_move_check(PAWN_MOVE.to_vec(), diff)
                     && is_empty(fen, to_move_index)
                 {
+                    if to_move_index > 56 || to_move_index < 9 {
+                        return Ok(MoveType::Promotion);
+                    }
                     return Ok(MoveType::Regular);
-                } else if non_contigious_move_check(NM_PAWN_MOVE.to_vec(), diff)
+                }
+                // Has bugs!
+                else if non_contigious_move_check(NM_PAWN_MOVE.to_vec(), diff)
                     && is_empty_till_n(fen, to_move_index, Offset::Up, 2, turn)
+                    && pawn_first_move(fen, from_move_index, turn)
                 {
                     return Ok(MoveType::DoublePawn);
-                } else if is_full(fen, to_move_index) && PAWN_CAPTURE.contains(&diff) {
-                    return Ok(MoveType::PawnCapture);
+                } else if PAWN_CAPTURE.contains(&diff) {
+                    
+                    if is_full(fen, to_move_index) {
+                        return Ok(MoveType::PawnCapture);
+                    }
+
+                    if en_passant_check(fen, to_move_index, factor) {
+                        return Ok(MoveType::EnPassant);
+                    } else {
+                        return Err(MoveErr("Invalid Pawn capture".to_owned()));
+                    }
                 } else {
                     return Err(MoveErr("Invalid Pawn move".to_owned()));
                 }
@@ -239,7 +251,6 @@ impl Move {
                 if contigious_move_check(ROOK_MOVE.to_vec(), from_move_index, diff, fen, factor) {
                     /* I need some way to represent Contigious moves */
                     if is_full(fen, to_move_index) {
-                        // TODO Does not check if there is a piece in between
                         return Ok(MoveType::Capture);
                     } else {
                         return Ok(MoveType::Regular);
@@ -387,14 +398,55 @@ impl Move {
         todo!()
     }
 
+    #[allow(dead_code)]
     pub fn fen_idx_from(&self) -> i32 {
         fen_idx(self.0)
     }
 
+    #[allow(dead_code)]
     pub fn fen_idx_to(&self) -> i32 {
         fen_idx(self.1)
     }
+}
 
+fn en_passant_bare(fen: &String, to_move_index: i32, factor: i8) -> bool {
+    // TODO Validate if the pawn has been moved
+    let near_piece = fen.chars().nth((to_move_index as i8 + 9 * -factor) as usize).unwrap();
+    if near_piece.to_ascii_lowercase() == 'p' {
+        if is_opposite_color(
+            near_piece,
+            factor,
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+fn pawn_first_move(fen: &String, from_move_index: i8, turn: bool) -> bool {
+    //
+    match turn {
+        true => {
+            if fen.chars().nth(from_move_index as usize - 1).unwrap() == 'P' {
+                if from_move_index > 48 && from_move_index <= 56 {
+                    // if it's in the same place as
+                    // it was before the game started
+                    return true;
+                }
+            }
+        }
+        false => {
+            if fen.chars().nth(from_move_index as usize - 1).unwrap() == 'p' {
+                if from_move_index > 8 && from_move_index <= 16 {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 fn is_opposite_color(piece: char, factor: i8) -> bool {

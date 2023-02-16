@@ -16,13 +16,12 @@ use piece::*;
 const PIECE_SET: piece::Theme = piece::themes::CHALLENGER; // Or you can type (u8, u8, u8), (u8, u8, u8) instead
 const BOARD_THEME: BTheme = color::themes::RUST;
 
-
-#[allow(non_upper_case_globals)]
-static mut last_move: ([usize; 2], [usize; 2]) = ([1, 2], [1, 2]);
+static mut LAST_MOVE: ([usize; 2], [usize; 2]) = ([1, 2], [1, 2]);
 static mut ESCAPE: &str = "\x1b[0m";
 
 #[allow(non_upper_case_globals)]
-const colored: bool = true; // will map it to command line argument
+const colored: bool = true; // will map it to command line argument thats why it is not SCREAMIN'
+const PROMOTED: [char; 4] = ['q', 'r', 'b', 'n'];
 const DEFAULT_PIECE_NOTATION: &str =
     "rnbqkbnrpppppppp                                PPPPPPPPRNBQKBNR"; // I have chosen to use something called FEN to encode FEN into board. This is fixed sized.
 const BOUNDS: [usize; 2] = [1, 8]; // Bounds of the board
@@ -99,6 +98,16 @@ impl Board {
     }
 
     #[allow(dead_code)]
+    pub fn resign(&mut self) {
+        self.classic();
+    }
+
+    #[allow(dead_code)]
+    pub fn classic(&mut self) -> Board {
+        Board::default()
+    }
+
+    #[allow(dead_code)]
     pub fn remove(&mut self, pos: [usize; 2]) {
         self.board[pos[0] - 1][pos[1] - 1] = ' ';
         self.encode();
@@ -128,7 +137,7 @@ impl Board {
         let current_move = current_move.decode_move();
         let from = dbg!(current_move.0);
         let to = dbg!(current_move.1);
-        
+
         dbg!(self.board[to[1] - 1][to[0] - 1]);
         dbg!(self.board[from[1] - 1][from[0] - 1]);
 
@@ -165,6 +174,7 @@ impl Board {
         // TODO
         //        self.board[to.0 as usize][to.1 as usize] = self.board[from.0 as usize][from.1 as usize];
         //        self.board[from.0 as usize][from.1 as usize] = 0;
+        //        TODO Clean this shit. It's a mess
         if self.board[from[1] - 1_usize][from[0] - 1_usize] == ' '
             || (self.board[from[1] - 1_usize][from[0] - 1_usize]
                 .to_lowercase()
@@ -193,7 +203,8 @@ impl Board {
             /* Go to the corner which King has been moved */
             //self.encode();
             match self.turn {
-                true => { // White
+                true => {
+                    // White
                     // TODO Make this for the last ranks: 1, 8
                     if dbg!(current_move.decode_move().1[0]) == 7 {
                         // if we are trying to castle to the right
@@ -203,7 +214,8 @@ impl Board {
                     }
                 }
 
-                false => { // Black
+                false => {
+                    // Black
                     if dbg!(current_move.decode_move().1[0]) == 7 {
                         // if we are trying to castle to the right
                         self.move_unchecked(&Move::new([8, 1], [6, 1]));
@@ -219,7 +231,7 @@ impl Board {
         }
 
         unsafe {
-            last_move = current_move.decode_move(); // Saving the last move
+            LAST_MOVE = current_move.decode_move(); // Saving the last move
         }
 
         self.board[to[1] - 1_usize][to[0] - 1_usize] =
@@ -231,10 +243,10 @@ impl Board {
 
     pub fn undo_move(&mut self) {
         unsafe {
-            self.board[last_move.0[1] - 1_usize][last_move.0[0] - 1_usize] =
-                self.board[last_move.1[1] - 1_usize][last_move.1[0] - 1_usize];
+            self.board[LAST_MOVE.0[1] - 1_usize][LAST_MOVE.0[0] - 1_usize] =
+                self.board[LAST_MOVE.1[1] - 1_usize][LAST_MOVE.1[0] - 1_usize];
             self.turn = !self.turn;
-            self.board[last_move.1[1] - 1_usize][last_move.1[0] - 1_usize] = ' ';
+            self.board[LAST_MOVE.1[1] - 1_usize][LAST_MOVE.1[0] - 1_usize] = ' ';
         }
         self.encode();
     }
@@ -413,6 +425,34 @@ impl Board {
     pub fn evaluate(&self) -> i32 {
         // Will evaluate the board (with a depth search)
         todo!();
+    }
+
+    pub fn promote_piece(&mut self, piece: char) -> Result<(), ()> {
+        /*
+         * Because this function has to get called after the piece moved,
+         * We have to take !turn to get the moved piece's color
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+        let turn = !self.turn;
+        let coords: [usize; 2];
+        unsafe {
+            coords = LAST_MOVE.1;
+        }
+        let piece = piece.to_ascii_lowercase();
+        for i in PROMOTED {
+            if i == piece {
+                match turn {
+                    true => self.board[coords[0] - 1][coords[1] - 1] = piece.to_ascii_uppercase(),
+                    _ => self.board[coords[0] - 1][coords[1] - 1] = piece,
+                }
+                return Ok(());
+            }
+        }
+        Err(())
+    }
+
+    #[allow(dead_code)]
+    pub fn change_piece(&mut self, coords: [usize; 2], piece: char) {
+        self.board[coords[0]][coords[1]] = piece;
     }
 
     //pub fn get_coordinate(&self, x: usize, y: usize) -> White {
