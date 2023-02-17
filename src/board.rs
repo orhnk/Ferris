@@ -148,6 +148,7 @@ impl Board {
     // TODO undo does not replace the taken piece
     pub fn move_piece(&mut self, current_move: Move) -> Result<MoveType, MoveErr> {
         let result = current_move.validate_move(&self.FEN, self.turn);
+
         if let Err(MoveErr(err)) = result {
             // for now I am ignoring
             return Err(MoveErr(err)); // TODO improve these to MoveErr
@@ -228,6 +229,35 @@ impl Board {
             self.encode();
             self.move_unchecked(&current_move);
             self.decode();
+        }
+
+        let factor: i8 = match self.turn {
+            true => -1,
+            false => 1,
+        };
+
+        if result == MoveType::EnPassant {
+            /*
+             * This function is the seconds pass for en passand move type validation,
+             * This will clearify if the taken pawn has been moved one move ago or not.
+             * and this function will clear the take piece becuase en passand does not
+             * replace the piece it takes.
+             * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+            let taken_pawn = current_move.decode_move().1;
+            let taken_pawn = [
+                taken_pawn[0],
+                (taken_pawn[1] as i8 + (1 * -factor)) as usize,
+            ];
+
+            // Verifying if the taken pawn has been moved one move ago
+            unsafe {
+                if LAST_MOVE.1 != taken_pawn {
+                    return Err(MoveErr("Invalid en passant move".to_owned()));
+                }
+            }
+            // Clearing the taken pawn
+            self.remove(taken_pawn);
         }
 
         unsafe {

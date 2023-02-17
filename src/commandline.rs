@@ -67,6 +67,7 @@ impl Command {
 
 #[allow(dead_code)]
 pub fn clear() {
-    print!("{}[2J", 27 as char);
+    //print!("{}[2J", 27 as char);
+    print!("{}", "\x1bc");
     //print!("{}", "\r".repeat(100)); // Didn't work TODO
 }

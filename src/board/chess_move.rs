@@ -8,13 +8,9 @@
 // TURN SYSTEM HAS BUGS!
 
 // TODO: Undoing undone moves lead to a problem
-// TODO: Castling
-// TODO: En passant
-// TODO: Promotion
+// TODO: Undoing piece takes does not bring piece back
 // TODO: Check and Checkmate
 // TODO: Stalemate
-// TODO: Resign
-// TODO: Draw
 // TODO: Moves doesn't affect the board if not drawed (BUG)
 
 //use crate::board::char_to_piece;
@@ -233,12 +229,11 @@ impl Move {
                 {
                     return Ok(MoveType::DoublePawn);
                 } else if PAWN_CAPTURE.contains(&diff) {
-                    
                     if is_full(fen, to_move_index) {
                         return Ok(MoveType::PawnCapture);
                     }
 
-                    if en_passant_check(fen, to_move_index, factor) {
+                    if en_passant_check(fen, to_move_index, factor, diff) {
                         return Ok(MoveType::EnPassant);
                     } else {
                         return Err(MoveErr("Invalid Pawn capture".to_owned()));
@@ -409,18 +404,16 @@ impl Move {
     }
 }
 
-fn en_passant_bare(fen: &String, to_move_index: i32, factor: i8) -> bool {
-    // TODO Validate if the pawn has been moved
-    let near_piece = fen.chars().nth((to_move_index as i8 + 9 * -factor) as usize).unwrap();
+// This is bare required for the move to be valid (Will do more checks in board.rs)
+//                                                 ^^^^^--- Moved? and clear taken piece
+fn en_passant_check(fen: &String, to_move_index: i32, factor: i8, diff: i8) -> bool {
+    // It could be 9, 7, -9, -7 (depending on the color and the direction)
+    let near_piece = dbg!(fen
+        .chars()
+        .nth((to_move_index as i8 + 8 * -factor - 1) as usize)
+        .unwrap());
     if near_piece.to_ascii_lowercase() == 'p' {
-        if is_opposite_color(
-            near_piece,
-            factor,
-        ) {
-            return true;
-        } else {
-            return false;
-        }
+        is_opposite_color(near_piece, factor)
     } else {
         return false;
     }

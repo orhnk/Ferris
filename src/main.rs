@@ -82,7 +82,7 @@ fn main() {
                     unsafe {
                         MOVE_TYPE = move_t.to_string();
                     }
-                    clear();
+                    //clear();
                 }
                 Err(e) => {
                     println!("{}", e);
