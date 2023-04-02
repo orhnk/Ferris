@@ -40,6 +40,7 @@ impl Command {
     #[allow(dead_code)]
     pub fn print_help(&self) {
         println!("{}: {}", self.name, self.description);
+
     }
 
     #[allow(dead_code)]

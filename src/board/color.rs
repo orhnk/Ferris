@@ -21,6 +21,7 @@ pub mod themes {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color(u8, u8, u8);
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BoardColor(Color, Color);
 

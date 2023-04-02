@@ -5,7 +5,7 @@
  * Date: 11.02.2023
  * */
 
-// TURN SYSTEM HAS BUGS!
+
 
 // TODO: Undoing undone moves lead to a problem
 // TODO: Undoing piece takes does not bring piece back
